@@ -1,5 +1,8 @@
 This repository contains a simple example of a px4 sitl communicating with ros2 to make the drone fly around in a circle automatically
 
+To download, please use:\
+git clone --recursive https://github.com/harryzhangzhx/drone_gazebo_Simulation_with_Vins_FUEL.git
+
 Prerequisites:
 
 1. have px4_sitl installed, following the steps outlined here (Ubuntu): https://docs.px4.io/main/en/dev_setup/dev_env_linux_ubuntu.html
