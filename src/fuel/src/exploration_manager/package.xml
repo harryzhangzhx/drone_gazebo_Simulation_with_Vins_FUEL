@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>exploration_manager</name>
+  <version>0.0.0</version>
+  <description>The exploration_manager package from fast_planner</description>
+
+  <maintainer email="bzhouai@todo.todo">bzhouai</maintainer>
+  <license>TODO</license>
+
+  <!-- Build tool -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- Build dependencies -->
+  <build_depend>rclcpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>tf2</build_depend>
+  <build_depend>tf2_ros</build_depend>
+
+  <!-- Custom packages (assumed to be migrated to ROS 2 as well) -->
+  <build_depend>plan_env</build_depend>
+  <build_depend>path_searching</build_depend>
+  <build_depend>bspline</build_depend>
+  <build_depend>bspline_opt</build_depend>
+  <build_depend>active_perception</build_depend>
+  <build_depend>traj_utils</build_depend>
+  <build_depend>lkh_tsp_solver</build_depend>
+  <build_depend>plan_manage</build_depend>
+  <build_depend>quadrotor_msgs</build_depend>
+
+  <!-- Export & runtime dependencies -->
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>tf2</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+
+  <exec_depend>plan_env</exec_depend>
+  <exec_depend>path_searching</exec_depend>
+  <exec_depend>bspline</exec_depend>
+  <exec_depend>bspline_opt</exec_depend>
+  <exec_depend>active_perception</exec_depend>
+  <exec_depend>traj_utils</exec_depend>
+  <exec_depend>lkh_tsp_solver</exec_depend>
+  <exec_depend>plan_manage</exec_depend>
+  <exec_depend>quadrotor_msgs</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

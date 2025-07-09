@@ -1,0 +1,79 @@
+<launch>
+  
+  <let name="map_size_x" value="8.0"/>
+  <let name="map_size_y" value="24.0"/>
+  <let name="map_size_z" value=" 5.0"/>
+
+  <let name="init_x" value="0.0"/>
+  <let name="init_y" value="0.0"/>
+  <let name="init_z" value="1.0"/> 
+
+
+  <let name="odom_topic" value="/vins_fusion/imu_propagate" />
+
+
+  <include file="$(find-pkg-share exploration_manager)/launch/algorithm.xml">
+
+    <arg name="map_size_x_" value="$(var map_size_x)"/>
+    <arg name="map_size_y_" value="$(var map_size_y)"/>
+    <arg name="map_size_z_" value="$(var map_size_z)"/>
+
+    <arg name="box_min_x" value="-4.0"/>
+    <arg name="box_min_y" value="-12.0"/>
+    <arg name="box_min_z" value=" -0.8"/>
+    <arg name="box_max_x" value="4.0"/>
+    <arg name="box_max_y" value="12.0"/>
+    <arg name="box_max_z" value="2.0"/>
+
+    <arg name="odometry_topic" value="$(var odom_topic)"/>
+
+    <arg name="sensor_pose_topic" value="/vins_fusion/imu_propagate"/>
+   
+
+    <arg name="depth_topic" value="/camera/depth/image_rect_raw"/>
+    <arg name="cloud_topic" value="nouse1"/>
+
+ 
+    <arg name="cx" value="321.04638671875"/>
+    <arg name="cy" value="243.44969177246094"/>
+    <arg name="fx" value="387.229248046875"/>
+    <arg name="fy" value="387.229248046875"/>
+
+
+    <arg name="max_vel" value="0.4" />
+    <arg name="max_acc" value="0.4" />
+  </include>
+
+  <node pkg="plan_manage" name="traj_server" exec="traj_server" output="screen">
+
+
+    <remap from="/odom_world" to="$(var odom_topic)"/>
+    <param name="traj_server/time_forward" value="1.5" />
+    <param name="traj_server/pub_traj_id" value="4"/>
+    <param name="traj_server/init_x" value="$(var init_x)" />
+    <param name="traj_server/init_y" value="$(var init_y)" />
+    <param name="traj_server/init_z" value="$(var init_z)" />
+
+    <param name="perception_utils/top_angle" value="0.56125" />
+    <param name="perception_utils/left_angle" value="0.69222" />
+    <param name="perception_utils/right_angle" value="0.68901" />
+    <param name="perception_utils/max_dist" value="4.5" />
+    <param name="perception_utils/vis_dist" value="1.0" />
+    
+
+  </node>
+
+  <node pkg="waypoint_generator" name="waypoint_generator" exec="waypoint_generator" output="screen">
+    <remap from="~odom" to="$(var odom_topic)"/>        
+    <remap from="~goal" to="/move_base_simple/goal"/>
+    <remap from="~traj_start_trigger" to="/traj_start_trigger" />
+    <param name="waypoint_type" value="point"/>    
+  </node>
+
+ 
+
+  <node name="rvizvisualisation" pkg="rviz2" exec="rviz2" output="log" args="-d $(find-pkg-share plan_manage)/config/traj.rviz" />
+  <node pkg="tf2_ros" exec="static_transform_publisher" name="tf_53" args="0 0 0 0 0 0 1 world navigation" />
+
+
+</launch>
