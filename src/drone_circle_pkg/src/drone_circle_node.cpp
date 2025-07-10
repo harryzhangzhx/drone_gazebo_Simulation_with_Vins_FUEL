@@ -94,6 +94,7 @@ void DroneCircleNode::publish_offboard_control_mode()
 }
 
 
+// // For circling motion
 // void DroneCircleNode::publish_trajectory_setpoint()
 // {
 // 	TrajectorySetpoint msg{};
@@ -113,6 +114,7 @@ void DroneCircleNode::publish_offboard_control_mode()
 //   }
 // }
 
+// For hovering motion
 void DroneCircleNode::publish_trajectory_setpoint()
 {
     TrajectorySetpoint msg{};
