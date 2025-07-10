@@ -1,0 +1,9 @@
+Naming rules
+
+Item	            Naming Style               Example              Notes
+Function names	    camelCase	               getOdom()	        Starts with a verb then camelCase
+Variable names	    snake_case	               variable_name	    Lowercase with underscores
+Member variables	snake_case + trailing _	   member_variable_     Trailing underscore marks members
+File names	        snake_case	               rrt_star.cpp         Lowercase with underscores
+Class/Struct names	PascalCase	               ImageProcessor	    Each word capitalized no underscores
+name_space names    snake_case	               fast_planner         Lowercase with underscores 
