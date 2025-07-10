@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e" pages="3">
     <diagram id="RxDyDp7E_9olwF9vVT94" name="architecture">
-        <mxGraphModel dx="1176" dy="782" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="740" dy="430" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -361,6 +361,19 @@
                         <mxPoint x="1000" y="419.5" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="s0zww9YA-1pB_BOCB6qn" name="Naming rules">
+        <mxGraphModel dx="871" dy="506" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <UserObject label="Naming rules&#xa;&#xa;&#xa;Item                Naming Style              Example              Notes&#xa;Function names      camelCase                 getOdom()            Starts with verb&#xa;Variable names      snake_case                variable_name        Lowercase with underscores&#xa;Member variables    snake_case + trailing_    member_variable_     Trailing underscore marks members&#xa;File names          snake_case                rrt_star.cpp         Lowercase with underscores&#xa;Class/Struct names  PascalCase                ImageProcessor       Each word capitalized no underscores&#xa;name_space names    snake_case                fast_planner         Lowercase with underscores" link="Naming rules&#xa;&#xa;&#xa;Item                Naming Style               Example              Notes&#xa;Function names        camelCase                   getOdom()            Starts with a verb then camelCase&#xa;Variable names        snake_case                   variable_name        Lowercase with underscores&#xa;Member variables    snake_case + trailing _       member_variable_     Trailing underscore marks members&#xa;File names            snake_case                   rrt_star.cpp         Lowercase with underscores&#xa;Class/Struct names    PascalCase                   ImageProcessor        Each word capitalized no underscores&#xa;name_space names    snake_case                   fast_planner         Lowercase with underscores" id="Ofmkg4F3qvc2oEOee1Ha-1">
+                    <mxCell style="text;whiteSpace=wrap;fontFamily=Courier New;" vertex="1" parent="1">
+                        <mxGeometry x="20" y="120" width="780" height="200" as="geometry"/>
+                    </mxCell>
+                </UserObject>
             </root>
         </mxGraphModel>
     </diagram>
