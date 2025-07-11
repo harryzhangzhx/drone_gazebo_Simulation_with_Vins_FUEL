@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Terminal 0: Prepare Gazebo (uncomment the below line if Gazebo won't reopen)
-gnome-terminal -- bash -c "source pkill -f gz; exec bash"
+# gnome-terminal -- bash -c "source pkill -f gz; exec bash"
 
 # Terminal 1: PX4 SITL
-gnome-terminal -- bash -c "export DISPLAY=:0; sleep 2; cd ~/PX4-Autopilot && PX4_GZ_WORLD=baylands make px4_sitl gz_x500_depth; exec bash" To set a different sim environment, change PX4_GZ_WORLD=$simulation environment$, currently set to baylands. Drone model is set to gz_x500_depth, output are depth images and RGB images
+gnome-terminal -- bash -c "export DISPLAY=:0; sleep 2; cd ~/PX4-Autopilot && PX4_GZ_WORLD=baylands make px4_sitl gz_x500_depth; exec bash" # To set a different sim environment, change PX4_GZ_WORLD=$simulation environment$, currently set to baylands. Drone model is set to gz_x500_depth, output are depth images and RGB images
 
 # Terminal 2: MicroXRCEAgent
 gnome-terminal -- bash -c "MicroXRCEAgent udp4 -p 8888; exec bash"
