@@ -127,7 +127,7 @@ void FastExplorationManager::initialize(const std::shared_ptr<rclcpp::Node>& nod
 
 int FastExplorationManager::planExploreMotion(
     const Vector3d& pos, const Vector3d& vel, const Vector3d& acc, const Vector3d& yaw) {
-  rclcpp::Time t1 = rclcpp::Clock().now();
+  rclcpp::Time t1 = rclcpp::Clock(RCL_ROS_TIME).now();
   auto t2 = t1;
   ed_->views_.clear();
   ed_->global_tour_.clear();
@@ -138,15 +138,15 @@ int FastExplorationManager::planExploreMotion(
   // Search frontiers and group them into clusters
   frontier_finder_->searchFrontiers();
 
-  double frontier_time = (rclcpp::Clock().now() - t1).seconds();
-  t1 = rclcpp::Clock().now();
+  double frontier_time = (rclcpp::Clock(RCL_ROS_TIME).now() - t1).seconds();
+  t1 = rclcpp::Clock(RCL_ROS_TIME).now();
 
   // Find viewpoints (x,y,z,yaw) for all frontier clusters and get visible ones' info
   frontier_finder_->computeFrontiersToVisit();
   frontier_finder_->getFrontiers(ed_->frontiers_);
   frontier_finder_->getFrontierBoxes(ed_->frontier_boxes_);
   frontier_finder_->getDormantFrontiers(ed_->dead_frontiers_);
-
+  
   if (ed_->frontiers_.empty()) {
     RCLCPP_WARN(rclcpp::get_logger("FastExplorationManager"), "No coverable frontier.");//??
     return NO_FRONTIER;
@@ -156,9 +156,8 @@ int FastExplorationManager::planExploreMotion(
     ed_->views_.push_back(
         ed_->points_[i] + 2.0 * Vector3d(cos(ed_->yaws_[i]), sin(ed_->yaws_[i]), 0));
 
-  double view_time = (rclcpp::Clock().now() - t1).seconds();
+  double view_time = (rclcpp::Clock(RCL_ROS_TIME).now() - t1).seconds();
   RCLCPP_WARN(rclcpp::get_logger("FastExplorationManager"), "Frontier: %d, t: %lf, viewpoint: %d, t: %lf", ed_->frontiers_.size(), frontier_time, ed_->points_.size(), view_time);
-
   // Do global and local tour planning and retrieve the next viewpoint
   Vector3d next_pos;
   double next_yaw;
@@ -172,7 +171,7 @@ int FastExplorationManager::planExploreMotion(
     if (ep_->refine_local_) {
       // Do refinement for the next few viewpoints in the global tour
       // Idx of the first K frontier in optimal tour
-      t1 = rclcpp::Clock().now();
+      t1 = rclcpp::Clock(RCL_ROS_TIME).now();
 
       ed_->refined_ids_.clear();
       ed_->unrefined_points_.clear();
@@ -183,7 +182,6 @@ int FastExplorationManager::planExploreMotion(
         ed_->refined_ids_.push_back(indices[i]);
         if ((tmp - pos).norm() > ep_->refined_radius_ && ed_->refined_ids_.size() >= 2) break;
       }
-
       // Get top N viewpoints for the next K frontiers
       ed_->n_points_.clear();
       vector<vector<double>> n_yaws;
@@ -212,7 +210,7 @@ int FastExplorationManager::planExploreMotion(
         ed_->refined_views1_.insert(ed_->refined_views1_.end(), v1.begin(), v1.end());
         ed_->refined_views2_.insert(ed_->refined_views2_.end(), v2.begin(), v2.end());
       }
-      double local_time = (rclcpp::Clock().now() - t1).seconds();
+      double local_time = (rclcpp::Clock(RCL_ROS_TIME).now() - t1).seconds();
       RCLCPP_WARN(rclcpp::get_logger("FastExplorationManager"), "Local refine time: %lf", local_time);
 
     } else {
@@ -260,7 +258,7 @@ int FastExplorationManager::planExploreMotion(
 
   std::cout << "Next view: " << next_pos.transpose() << ", " << "next_yaw:" << next_yaw << std::endl;
   // Plan trajectory (position and yaw) to the next viewpoint
-  t1 = rclcpp::Clock().now();
+  t1 = rclcpp::Clock(RCL_ROS_TIME).now();
 
   // Compute time lower bound of yaw and use in trajectory generation
   double diff = fabs(next_yaw - yaw[0]);
@@ -310,18 +308,17 @@ int FastExplorationManager::planExploreMotion(
             pos, vel, acc, ed_->next_goal_, Vector3d(0, 0, 0), time_lb))
       return FAIL;
   }
-
   if (planner_manager_->local_data_.position_traj_.getTimeSum() < time_lb - 0.1)
     RCLCPP_ERROR(rclcpp::get_logger("global_logger"), "Lower bound not satified!");
 
   planner_manager_->planYawExplore(yaw, next_yaw, true, ep_->relax_time_);
 
-  double traj_plan_time = (rclcpp::Clock().now() - t1).seconds();
-  t1 = rclcpp::Clock().now();
+  double traj_plan_time = (rclcpp::Clock(RCL_ROS_TIME).now() - t1).seconds();
+  t1 = rclcpp::Clock(RCL_ROS_TIME).now();
 
-  double yaw_time = (rclcpp::Clock().now()- t1).seconds();
+  double yaw_time = (rclcpp::Clock(RCL_ROS_TIME).now()- t1).seconds();
   RCLCPP_WARN(rclcpp::get_logger("FastExplorationManager"), "Traj: %lf, yaw: %lf", traj_plan_time, yaw_time);
-  double total = (rclcpp::Clock().now()- t2).seconds();
+  double total = (rclcpp::Clock(RCL_ROS_TIME).now()- t2).seconds();
   RCLCPP_WARN(rclcpp::get_logger("FastExplorationManager"), "Total time: %lf", total);
   if (total > 0.1)  {
     RCLCPP_ERROR(rclcpp::get_logger("FastExplorationManager"), "Total time too long!!!");
@@ -364,7 +361,7 @@ void FastExplorationManager::shortenPath(vector<Vector3d>& path) {
 void FastExplorationManager::findGlobalTour(
     const Vector3d& cur_pos, const Vector3d& cur_vel, const Vector3d cur_yaw,
     vector<int>& indices) {
-    auto t1 = rclcpp::Clock().now();
+    auto t1 = rclcpp::Clock(RCL_ROS_TIME).now();
 
   // Get cost matrix for current state and clusters
   Eigen::MatrixXd cost_mat;
@@ -372,8 +369,8 @@ void FastExplorationManager::findGlobalTour(
   frontier_finder_->getFullCostMatrix(cur_pos, cur_vel, cur_yaw, cost_mat);
   const int dimension = cost_mat.rows();
 
-  double mat_time = (rclcpp::Clock().now() - t1).seconds();
-  t1 = rclcpp::Clock().now();
+  double mat_time = (rclcpp::Clock(RCL_ROS_TIME).now() - t1).seconds();
+  t1 = rclcpp::Clock(RCL_ROS_TIME).now();
 
   // Write params and cost matrix to problem file
   ofstream prob_file(ep_->tsp_dir_ + "/single.tsp");
@@ -459,7 +456,7 @@ void FastExplorationManager::findGlobalTour(
   // Get the path of optimal tour from path matrix
   frontier_finder_->getPathForTour(cur_pos, indices, ed_->global_tour_);
 
-  double tsp_time = (rclcpp::Clock().now() - t1).seconds();
+  double tsp_time = (rclcpp::Clock(RCL_ROS_TIME).now() - t1).seconds();
   RCLCPP_WARN(rclcpp::get_logger("FastExplorationManager"), "Cost mat: %lf, TSP: %lf", mat_time, tsp_time);
 }
 
@@ -468,7 +465,7 @@ void FastExplorationManager::refineLocalTour(
     const vector<vector<Vector3d>>& n_points, const vector<vector<double>>& n_yaws,
     vector<Vector3d>& refined_pts, vector<double>& refined_yaws) {
   double create_time, search_time, parse_time;
-  auto t1 = rclcpp::Clock().now();
+  auto t1 = rclcpp::Clock(RCL_ROS_TIME).now();
 
   // Create graph for viewpoints selection
   GraphSearch<ViewNode> g_search;
@@ -505,15 +502,15 @@ void FastExplorationManager::refineLocalTour(
     cur_group.clear();
   }
   std::cout << "" << std::endl;
-  create_time = (rclcpp::Clock().now() - t1).seconds();
-  t1 = rclcpp::Clock().now();
+  create_time = (rclcpp::Clock(RCL_ROS_TIME).now() - t1).seconds();
+  t1 = rclcpp::Clock(RCL_ROS_TIME).now();
 
   // Search optimal sequence
   vector<ViewNode::Ptr> path;
   g_search.DijkstraSearch(first->id_, final_node->id_, path);
 
-  search_time = (rclcpp::Clock().now() - t1).seconds();
-  t1 = rclcpp::Clock().now();
+  search_time = (rclcpp::Clock(RCL_ROS_TIME).now() - t1).seconds();
+  t1 = rclcpp::Clock(RCL_ROS_TIME).now();
 
   // Return searched sequence
   for (int i = 1; i < path.size(); ++i) {
@@ -535,7 +532,7 @@ void FastExplorationManager::refineLocalTour(
   }
   ViewNode::astar_->lambda_heu_ = 10000;
 
-  parse_time = (rclcpp::Clock().now() - t1).seconds();
+  parse_time = (rclcpp::Clock(RCL_ROS_TIME).now() - t1).seconds();
   // ROS_WARN("create: %lf, search: %lf, parse: %lf", create_time, search_time, parse_time);
 }
 

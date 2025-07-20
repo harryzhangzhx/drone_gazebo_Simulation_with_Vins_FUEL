@@ -67,7 +67,7 @@ void displayTrajWithColor(vector<Eigen::Vector3d> path, double resolution, Eigen
                           int id) {
   visualization_msgs::msg::Marker mk;
   mk.header.frame_id = "world";
-  mk.header.stamp = rclcpp::Clock().now();
+  mk.header.stamp = rclcpp::Clock(RCL_ROS_TIME).now();
   mk.type = visualization_msgs::msg::Marker::SPHERE_LIST;
   mk.action = visualization_msgs::msg::Marker::DELETE;
   mk.id = id;
@@ -99,7 +99,7 @@ void displayTrajWithColor(vector<Eigen::Vector3d> path, double resolution, Eigen
 void drawFOV(const vector<Eigen::Vector3d>& list1, const vector<Eigen::Vector3d>& list2) {
   visualization_msgs::msg::Marker mk;
   mk.header.frame_id = "world";
-  mk.header.stamp = rclcpp::Clock().now();
+  mk.header.stamp = rclcpp::Clock(RCL_ROS_TIME).now();
   mk.id = 0;
   mk.ns = "current_pose";
   mk.type = visualization_msgs::msg::Marker::LINE_LIST;
@@ -118,7 +118,7 @@ void drawFOV(const vector<Eigen::Vector3d>& list1, const vector<Eigen::Vector3d>
   // Clean old marker
   mk.action = visualization_msgs::msg::Marker::DELETE;
   cmd_vis_pub->publish(mk);
-
+  RCLCPP_INFO(rclcpp::get_logger("cmd_vis"), "Deleted old marker");
   if (list1.size() == 0) return;
 
   // Pub new marker
@@ -136,13 +136,15 @@ void drawFOV(const vector<Eigen::Vector3d>& list1, const vector<Eigen::Vector3d>
   }
   mk.action = visualization_msgs::msg::Marker::ADD;
   cmd_vis_pub->publish(mk);
+  RCLCPP_INFO(rclcpp::get_logger("cmd_vis"), "Published new marker");
+
 }
 
 void drawCmd(const Eigen::Vector3d& pos, const Eigen::Vector3d& vec, const int& id,
              const Eigen::Vector4d& color) {
   visualization_msgs::msg::Marker mk_state;
   mk_state.header.frame_id = "world";
-  mk_state.header.stamp = rclcpp::Clock().now();
+  mk_state.header.stamp = rclcpp::Clock(RCL_ROS_TIME).now();
   mk_state.id = id;
   mk_state.type = visualization_msgs::msg::Marker::ARROW;
   mk_state.action = visualization_msgs::msg::Marker::ADD;
@@ -169,12 +171,13 @@ void drawCmd(const Eigen::Vector3d& pos, const Eigen::Vector3d& vec, const int& 
   mk_state.color.a = color(3);
 
   cmd_vis_pub->publish(mk_state);
+  RCLCPP_INFO(rclcpp::get_logger("cmd_vis"), "Published new marker");
 }
 
 void replanCallback(const std_msgs::msg::Empty::SharedPtr msg) {
   // Informed of new replan, end the current traj after some time
   const double time_out = 0.3;
-  rclcpp::Time time_now = rclcpp::Clock().now();
+  rclcpp::Time time_now = rclcpp::Clock(RCL_ROS_TIME).now();
   double t_stop = (time_now - start_time_).seconds() + time_out + replan_time_;
   traj_duration_ = min(t_stop, traj_duration_);
 }
@@ -247,17 +250,24 @@ void bsplineCallback(const bspline::msg::Bspline::SharedPtr msg) {
   traj_.push_back(pos_traj);
   traj_.push_back(traj_[0].getDerivative());
   traj_.push_back(traj_[1].getDerivative());
+  std::cout << "traj_[0]:\n" << traj_[0].getControlPoint() << std::endl;
+  std::cout << "traj_[1]:\n" << traj_[1].getControlPoint() << std::endl;
+  std::cout << "traj_[2]:\n" << traj_[2].getControlPoint() << std::endl;
   traj_.push_back(yaw_traj);
+  std::cout << "traj_[3]:\n" << traj_[3].getControlPoint() << std::endl;
   traj_.push_back(yaw_traj.getDerivative());
+  std::cout << "traj_[4]:\n" << traj_[4].getControlPoint() << std::endl;
   traj_.push_back(traj_[2].getDerivative());
+  std::cout << "traj_[5]:\n" << traj_[5].getControlPoint() << std::endl;
   traj_duration_ = traj_[0].getTimeSum();
-
+  std::cout << "traj_duration: " << traj_duration_ << std::endl;
+  // std::cout << "traj_[3]:\n" << traj_[3].getControlPoint() << std::endl;
   receive_traj_ = true;
 
   // Record the start time of flight
   if (start_time.nanoseconds() == 0) {
     // ROS_WARN("start flight");
-    start_time = rclcpp::Clock().now();
+    start_time = rclcpp::Clock(RCL_ROS_TIME).now();
   }
 }
 
@@ -265,7 +275,7 @@ void cmdCallback() {
   // No publishing before receive traj data
   if (!receive_traj_) return;
 
-  rclcpp::Time time_now = rclcpp::Clock().now();
+  rclcpp::Time time_now = rclcpp::Clock(RCL_ROS_TIME).now();
   double t_cur = (time_now - start_time_).seconds();
   Eigen::Vector3d pos, vel, acc, jer;
   double yaw, yawdot;
@@ -341,7 +351,7 @@ void cmdCallback() {
     traj_cmd_.push_back(pos);
     double dt = (time_now - last_time).seconds();
     energy += jer.squaredNorm() * dt;
-    end_time = rclcpp::Clock().now();
+    end_time = rclcpp::Clock(RCL_ROS_TIME).now();
   }
   last_time = time_now;
 
@@ -413,8 +423,8 @@ void test() {
   rclcpp::sleep_for(std::chrono::milliseconds(100));
 
   // Pub the traj
-  auto t1 = rclcpp::Clock().now();
-  double tn = (rclcpp::Clock().now() - t1).seconds();
+  auto t1 = rclcpp::Clock(RCL_ROS_TIME).now();
+  double tn = (rclcpp::Clock(RCL_ROS_TIME).now() - t1).seconds();
   while (tn < duration && rclcpp::ok()) {
     // Eigen::Vector3d p = bspline.evaluateDeBoorT(tn);
     // Eigen::Vector3d v = vel.evaluateDeBoorT(tn);
@@ -423,7 +433,7 @@ void test() {
     Eigen::Vector3d v = vel.evaluateDeBoorT(tn);
     Eigen::Vector3d a = acc.evaluateDeBoorT(tn);
 
-    cmd.header.stamp = rclcpp::Clock().now();
+    cmd.header.stamp = rclcpp::Clock(RCL_ROS_TIME).now();
     cmd.position.x = p(0);
     cmd.position.y = p(1);
     cmd.position.z = p(2);
@@ -436,7 +446,7 @@ void test() {
     pos_cmd_pub->publish(cmd);
 
     rclcpp::sleep_for(std::chrono::milliseconds(20));
-    tn = (rclcpp::Clock().now() - t1).seconds();
+    tn = (rclcpp::Clock(RCL_ROS_TIME).now() - t1).seconds();
   }
 }
 
@@ -469,14 +479,14 @@ int main(int argc, char** argv) {
   // node->declare_parameter("traj_server/init_y", 0.0);
   // node->declare_parameter("traj_server/init_z", 0.0);
 
-  node->get_parameter("traj_server/pub_traj_id", pub_traj_id_);
-  node->get_parameter("fsm/replan_time", replan_time_);
-  node->get_parameter("loop_correction/isLoopCorrection", isLoopCorrection);
+  node->get_parameter_or("traj_server/pub_traj_id", pub_traj_id_, 4);
+  node->get_parameter_or("fsm/replan_time", replan_time_, 0.2);
+  node->get_parameter_or("loop_correction/isLoopCorrection", isLoopCorrection, false);
 
   Eigen::Vector3d init_pos;
-  node->get_parameter("traj_server/init_x", init_pos[0]);
-  node->get_parameter("traj_server/init_y", init_pos[1]);
-  node->get_parameter("traj_server/init_z", init_pos[2]);
+  node->get_parameter_or("traj_server/init_x", init_pos[0], 0.0);
+  node->get_parameter_or("traj_server/init_y", init_pos[1], 0.0);
+  node->get_parameter_or("traj_server/init_z", init_pos[2], 0.0);
 
 
   RCLCPP_WARN(node->get_logger(), "[Traj server]: init...");
@@ -489,7 +499,7 @@ int main(int argc, char** argv) {
   std::cout << start_time.seconds() << std::endl;
   std::cout << end_time.seconds() << std::endl;
 
-  cmd.header.stamp = rclcpp::Clock().now();
+  cmd.header.stamp = rclcpp::Clock(RCL_ROS_TIME).now();
   cmd.header.frame_id = "world";
   // cmd.trajectory_flag = quadrotor_msgs::PositionCommand::TRAJECTORY_STATUS_READY;
   // cmd.trajectory_id = traj_id_;

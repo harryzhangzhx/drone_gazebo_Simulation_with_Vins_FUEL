@@ -19,6 +19,7 @@ gnome-terminal -- bash -c "sleep 31s && ros2 run ros_gz_bridge parameter_bridge 
 /camera_info@sensor_msgs/msg/CameraInfo@ignition.msgs.CameraInfo \
 /depth_camera/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked \
 /depth_camera@sensor_msgs/msg/Image@gz.msgs.Image \
+/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock \
 /world/baylands/model/x500_depth_0/link/base_link/sensor/imu_sensor/imu@sensor_msgs/msg/Imu[gz.msgs.IMU; exec bash"
 
 # Terminal 6: Odometry Converter Node

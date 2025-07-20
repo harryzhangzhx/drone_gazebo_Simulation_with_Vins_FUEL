@@ -48,10 +48,13 @@ int main(int argc, char** argv) {
 
   auto node = rclcpp::Node::make_shared("exploration_node", options);
 
-  FastExplorationFSM expl_fsm;
-  expl_fsm.init(node);  // Set parameters and state (no timers yet)
+  // FastExplorationFSM expl_fsm;
+  // expl_fsm.init(node);  // Set parameters and state (no timers yet)
 
-  rclcpp::sleep_for(std::chrono::seconds(10));  // Optional buffer delay
+  auto fsm = std::make_shared<fast_planner::FastExplorationFSM>();
+  fsm->init(node);
+
+  rclcpp::sleep_for(std::chrono::seconds(2));  // Optional buffer delay
 
   rclcpp::spin(node);
   rclcpp::shutdown();

@@ -1,6 +1,7 @@
 #include "bspline/non_uniform_bspline.h"
 #include <rclcpp/rclcpp.hpp>
 
+
 namespace fast_planner {
 NonUniformBspline::NonUniformBspline(const Eigen::MatrixXd& points, const int& order,
                                      const double& interval) {
@@ -78,6 +79,10 @@ Eigen::MatrixXd NonUniformBspline::getDerivativeControlPoints() {
   // The derivative of a b-spline is also a b-spline, its degree become p_-1
   Eigen::MatrixXd ctp = Eigen::MatrixXd::Zero(control_points_.rows() - 1, control_points_.cols());
 
+  // Debug: Check derivative control points computation
+  std::cout << "[getDerivativeControlPoints] control_points_.rows()=" << control_points_.rows() 
+            << ", creating derivative with " << ctp.rows() << " rows" << std::endl;
+
   // Control point Qi = p_*(Pi+1-Pi)/(ui+p_+1-ui+1)
   for (int i = 0; i < ctp.rows(); ++i)
     ctp.row(i) =
@@ -94,8 +99,33 @@ void NonUniformBspline::computeDerivatives(const int& k, vector<NonUniformBsplin
     ders.push_back(ders.back().getDerivative());
 }
 
+// NonUniformBspline NonUniformBspline::getDerivative() {
+
+//   Eigen::MatrixXd ctp = getDerivativeControlPoints();
+  
+//   if (ctp.rows() == 0 || p_ - 1 < 1) {
+    
+//     cout<< "Error: Not enough control points or degree too low for derivative." << endl;
+//     cout<< "ctp.rows()=" << ctp.rows() << ", p_-1=" << (p_-1) << endl;
+//     // RCLCPP_ERROR(rclcpp::get_logger("NonUniformBspline"),
+//     //              "Cannot construct derivative: not enough control points or degree too low.");
+//     exit(EXIT_FAILURE);
+//     std::this_thread::sleep_for(std::chrono::seconds(1));
+//     return NonUniformBspline();
+//   }
+//   NonUniformBspline derivative(ctp, p_ - 1, knot_span_);
+
+//   // Remove cut the first and last knot
+//   Eigen::VectorXd knot(u_.rows() - 2);
+//   knot = u_.segment(1, u_.rows() - 2);
+//   derivative.setKnot(knot);
+//   return derivative;
+// }
+
 NonUniformBspline NonUniformBspline::getDerivative() {
   Eigen::MatrixXd ctp = getDerivativeControlPoints();
+  cout<< "getDerivativeControlPoints done, ctp.rows()=" << ctp
+       << ", p_=" << p_ << ", knot_span_=" << knot_span_ << std::endl;
   NonUniformBspline derivative(ctp, p_ - 1, knot_span_);
 
   // Remove cut the first and last knot
@@ -107,8 +137,11 @@ NonUniformBspline NonUniformBspline::getDerivative() {
 
 void NonUniformBspline::getBoundaryStates(const int& ks, const int& ke, vector<Eigen::Vector3d>& start,
                                           vector<Eigen::Vector3d>& end) {
+  // Print input variables
+  // std::cout << "ks: " << ks << ", ke: " << ke << std::endl;
   vector<NonUniformBspline> ders;
   computeDerivatives(max(ks, ke), ders);
+  cout<<"computeDerivatives done"<<endl;
   double duration = getTimeSum();
 
   start.clear();
@@ -153,9 +186,10 @@ double NonUniformBspline::checkRatio() {
       max_acc = max(max_acc, fabs(acc(j)));
   }
   double ratio = max(max_vel / limit_vel_, sqrt(fabs(max_acc) / limit_acc_));
-  RCLCPP_INFO(rclcpp::get_logger("NonUniformBspline"), "max vel: %lf, max acc: %lf, ratio: %lf", max_vel, max_acc, ratio);
+  // ROS_INFO("max vel: %lf, max acc: %lf, ratio: %lf", max_vel, max_acc, ratio);
   if (ratio > 2.0) {
-    RCLCPP_ERROR(rclcpp::get_logger("NonUniformBspline"), "max vel: %lf, max acc: %lf, ratio: %lf", max_vel, max_acc, ratio);
+    RCLCPP_ERROR(rclcpp::get_logger("NonUniformBspline"),
+                 "max vel: %lf, max acc: %lf, ratio: %lf", max_vel, max_acc, ratio);
   }
 
   return ratio;
@@ -244,8 +278,8 @@ void NonUniformBspline::parameterizeToBspline(const double& ts, const vector<Eig
   }
 
   // cout << fixed << setprecision(2) << endl;
-  // std::cout << "A:" << std::endl;
-  // std::cout << A << std::endl;
+  // //std::cout << "A:" << std::endl;
+  // //std::cout << A << std::endl;
 
   // K Waypoints and 4 boundary derivative
   for (int i = 0; i < K; ++i) {

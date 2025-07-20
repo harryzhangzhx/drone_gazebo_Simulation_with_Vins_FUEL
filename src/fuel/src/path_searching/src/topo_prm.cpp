@@ -32,18 +32,18 @@ void TopologyPRM::init(const std::shared_ptr<rclcpp::Node>& nh) {
   // nh->declare_parameter("topo_prm/max_raw_path2", -1);
   // nh->declare_parameter("topo_prm/parallel_shortcut", false);
 
-  nh->get_parameter("topo_prm/sample_inflate_x", sample_inflate_(0));
-  nh->get_parameter("topo_prm/sample_inflate_y", sample_inflate_(1));
-  nh->get_parameter("topo_prm/sample_inflate_z", sample_inflate_(2));
-  nh->get_parameter("topo_prm/clearance", clearance_);
-  nh->get_parameter("topo_prm/short_cut_num", short_cut_num_);
-  nh->get_parameter("topo_prm/reserve_num", reserve_num_);
-  nh->get_parameter("topo_prm/ratio_to_short", ratio_to_short_);
-  nh->get_parameter("topo_prm/max_sample_num", max_sample_num_);
-  nh->get_parameter("topo_prm/max_sample_time", max_sample_time_);
-  nh->get_parameter("topo_prm/max_raw_path", max_raw_path_);
-  nh->get_parameter("topo_prm/max_raw_path2", max_raw_path2_);
-  nh->get_parameter("topo_prm/parallel_shortcut", parallel_shortcut_);
+  nh->get_parameter_or("topo_prm/sample_inflate_x", sample_inflate_(0), -1.0);
+  nh->get_parameter_or("topo_prm/sample_inflate_y", sample_inflate_(1), -1.0);
+  nh->get_parameter_or("topo_prm/sample_inflate_z", sample_inflate_(2), -1.0);
+  nh->get_parameter_or("topo_prm/clearance", clearance_, -1.0);
+  nh->get_parameter_or("topo_prm/short_cut_num", short_cut_num_, -1);
+  nh->get_parameter_or("topo_prm/reserve_num", reserve_num_, -1);
+  nh->get_parameter_or("topo_prm/ratio_to_short", ratio_to_short_, -1.0);
+  nh->get_parameter_or("topo_prm/max_sample_num", max_sample_num_, -1);
+  nh->get_parameter_or("topo_prm/max_sample_time", max_sample_time_, -1.0);
+  nh->get_parameter_or("topo_prm/max_raw_path", max_raw_path_, 1);
+  nh->get_parameter_or("topo_prm/max_raw_path2", max_raw_path2_, -1);
+  nh->get_parameter_or("topo_prm/parallel_shortcut", parallel_shortcut_, false);
 
   resolution_ = edt_environment_->sdf_map_->getResolution();
   Eigen::Vector3d origin, size;

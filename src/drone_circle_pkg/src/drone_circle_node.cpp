@@ -116,7 +116,7 @@ void DroneCircleNode::publish_offboard_control_mode()
 void DroneCircleNode::publish_trajectory_setpoint()
 {
     TrajectorySetpoint msg{};
-    msg.position = {0.0, 0.0, -5.0}; // Hover at (0, 0, -5)
+    msg.position = {0.0, 0.0, -1.0}; // Hover at (0, 0, -1)
     msg.yaw = 0.0f; // Keep yaw fixed
     msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
     trajectory_setpoint_publisher_->publish(msg);

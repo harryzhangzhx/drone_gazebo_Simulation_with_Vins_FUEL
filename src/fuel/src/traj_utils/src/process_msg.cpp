@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
 // }
 
 // void cloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
-//   auto tn = rclcpp::Clock().now();
+//   auto tn = rclcpp::Clock(RCL_ROS_TIME).now();
 //   if ((tn - last_cloud_time_).seconds() < 5) {
 //     return;
 //   }

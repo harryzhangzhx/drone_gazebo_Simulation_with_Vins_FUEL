@@ -56,6 +56,27 @@ void BsplineOptimizer::setParam(const std::shared_ptr<rclcpp::Node>& nh) {
   nh->get_parameter_or("manager/bspline_degree", bspline_degree_, 3);
 
   time_lb_ = -1;  // Not used by in most case
+  RCLCPP_INFO(nh_->get_logger(), "ld_smooth: %f", ld_smooth_);
+  RCLCPP_INFO(nh_->get_logger(), "ld_dist: %f", ld_dist_);
+  RCLCPP_INFO(nh_->get_logger(), "ld_feasi: %f", ld_feasi_);
+  RCLCPP_INFO(nh_->get_logger(), "ld_start: %f", ld_start_);
+  RCLCPP_INFO(nh_->get_logger(), "ld_end: %f", ld_end_);
+  RCLCPP_INFO(nh_->get_logger(), "ld_guide: %f", ld_guide_);
+  RCLCPP_INFO(nh_->get_logger(), "ld_waypt: %f", ld_waypt_);
+  RCLCPP_INFO(nh_->get_logger(), "ld_view: %f", ld_view_);
+  RCLCPP_INFO(nh_->get_logger(), "ld_time: %f", ld_time_);
+  RCLCPP_INFO(nh_->get_logger(), "dist0: %f", dist0_);
+  RCLCPP_INFO(nh_->get_logger(), "max_vel: %f", max_vel_);
+  RCLCPP_INFO(nh_->get_logger(), "max_acc: %f", max_acc_);
+  RCLCPP_INFO(nh_->get_logger(), "dlmin: %f", dlmin_);
+  RCLCPP_INFO(nh_->get_logger(), "wnl: %f", wnl_);
+  RCLCPP_INFO(nh_->get_logger(), "max_iteration_num: [%d, %d, %d, %d]", 
+        max_iteration_num_[0], max_iteration_num_[1], max_iteration_num_[2], max_iteration_num_[3]);
+  RCLCPP_INFO(nh_->get_logger(), "max_iteration_time: [%f, %f, %f, %f]", 
+        max_iteration_time_[0], max_iteration_time_[1], max_iteration_time_[2], max_iteration_time_[3]);
+  RCLCPP_INFO(nh_->get_logger(), "algorithm1: %d", algorithm1_);
+  RCLCPP_INFO(nh_->get_logger(), "algorithm2: %d", algorithm2_);
+  RCLCPP_INFO(nh_->get_logger(), "bspline_degree: %d", bspline_degree_);
 }
 
 void BsplineOptimizer::setEnvironment(const shared_ptr<EDTEnvironment>& env) {

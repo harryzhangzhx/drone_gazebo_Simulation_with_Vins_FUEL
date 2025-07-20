@@ -8,21 +8,15 @@ VisibilityUtil::VisibilityUtil() {
 
 VisibilityUtil::VisibilityUtil(const std::shared_ptr<rclcpp::Node>& nh) {
   
-  nh_ = nh;
+  // nh_ = nh;
   // set parameters
-  nh->get_parameter("visibility/visib_min", min_visib_);
-
-  nh->get_parameter("visibility/max_safe_dist", max_safe_dist_);
-
-  nh->get_parameter("visibility/safe_margin", safe_margin_);
-
-  nh->get_parameter("visibility/max_acc_", max_acc_);
-
-  nh->get_parameter("visibility/r0", r0_);
-
-  nh->get_parameter("visibility/wnl", wnl_);
-
-  nh->get_parameter("visibility/forward", forward_);
+  nh->get_parameter_or("visibility/visib_min", min_visib_, -1.0);
+  nh->get_parameter_or("visibility/max_safe_dist", max_safe_dist_, -1.0);
+  nh->get_parameter_or("visibility/safe_margin", safe_margin_, -1.0);
+  nh->get_parameter_or("visibility/max_acc_", max_acc_, -1.0);
+  nh->get_parameter_or("visibility/r0", r0_, -1.0);
+  nh->get_parameter_or("visibility/wnl", wnl_, -1.0);
+  nh->get_parameter_or("visibility/forward", forward_, -1.0);
 
   caster_.reset(new RayCaster);
 }

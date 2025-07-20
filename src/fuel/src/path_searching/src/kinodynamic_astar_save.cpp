@@ -15,6 +15,27 @@ KinodynamicAstar::~KinodynamicAstar() {
 int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, Eigen::Vector3d start_a,
                              Eigen::Vector3d end_pt, Eigen::Vector3d end_v, bool init, bool dynamic,
                              double time_start) {
+  // Debug: Check initialization
+  cout << "[DEBUG] Search called with:" << endl;
+  cout << "  start_pt: " << start_pt.transpose() << endl;
+  cout << "  start_v: " << start_v.transpose() << endl;
+  cout << "  start_a: " << start_a.transpose() << endl;
+  cout << "  end_pt: " << end_pt.transpose() << endl;
+  cout << "  end_v: " << end_v.transpose() << endl;
+  cout << "  init: " << init << ", dynamic: " << dynamic << endl;
+  cout << "  use_node_num_: " << use_node_num_ << endl;
+  cout << "  allocate_num_: " << allocate_num_ << endl;
+  
+  if (path_node_pool_.empty()) {
+    cout << "[ERROR] path_node_pool_ is empty! Did you call init()?" << endl;
+    return NO_PATH;
+  }
+  
+  if (use_node_num_ >= allocate_num_) {
+    cout << "[ERROR] use_node_num_ >= allocate_num_! Reset not called properly?" << endl;
+    return NO_PATH;
+  }
+
   start_vel_ = start_v;
   start_acc_ = start_a;
 
@@ -53,7 +74,7 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
 
   while (!open_set_.empty()) {
     cur_node = open_set_.top();
-
+    // cout << "in while" << endl;
     // Terminate?
     bool reach_horizon = (cur_node->state.head(3) - start_pt).norm() >= horizon_;
     bool near_end = abs(cur_node->index(0) - end_index(0)) <= tolerance &&
@@ -67,7 +88,7 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
         // Check whether shot traj exist
         estimateHeuristic(cur_node->state, end_state, time_to_goal);
         computeShotTraj(cur_node->state, end_state, time_to_goal);
-        if (init_search) RCLCPP_ERROR(rclcpp::get_logger("kinodynamic_astar"), "Shot in first search loop!");
+        if (init_search) RCLCPP_ERROR(rclcpp::get_logger("topology_prm"),"Shot in first search loop!");
       }
     }
     if (reach_horizon) {
@@ -145,6 +166,13 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
           if (init_search) //std::cout << "close" << std::endl;
           continue;
         }
+        
+        // Debug: Print hash table lookup info (reduce spam)
+        if (pro_node != NULL && pro_node->node_state != IN_CLOSE_SET) {
+          cout << "[DEBUG] Found node in hash table: pos=" << pro_pos.transpose() 
+               << ", id=" << pro_id.transpose() << ", state=" << pro_node->node_state 
+               << " (a=close, b=open, c=not_expand)" << endl;
+        }
 
         // Check maximal velocity
         Eigen::Vector3d pro_v = pro_state.tail(3);
@@ -210,7 +238,7 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
         // This node end up in a voxel different from others
         if (!prune) {
           if (pro_node == NULL) {
-            // cout<<"pro node is NULL, insert new node."<<endl;
+            // cout<<"in pro node == NULL"<<endl;
             pro_node = path_node_pool_[use_node_num_];
             pro_node->index = pro_id;
             pro_node->state = pro_state;
@@ -249,23 +277,21 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
               pro_node->parent = cur_node;
               if (dynamic) pro_node->time = cur_node->time + tau;
             }
+          } else if (pro_node->node_state == IN_CLOSE_SET) {
+            // Node is already in close set, skip it
+            // This can happen due to race conditions or hash table collisions
+            if (init_search) //std::cout << "node already in close set, skipping" << std::endl;
+            continue;
+          } else if (pro_node->node_state == NOT_EXPAND) {
+            // Node exists but hasn't been expanded yet - this shouldn't happen
+            cout << "Warning: Found node in NOT_EXPAND state, this shouldn't happen" << endl;
+            cout << "Node state: " << pro_node->node_state << " (NOT_EXPAND='c')" << endl;
+            continue;
           } else {
-            cout << "error type in searching: " << pro_node->node_state << endl;
+            cout << "error type in searching: node_state=" << static_cast<int>(pro_node->node_state) 
+                 << " (as char: '" << pro_node->node_state << "')" << endl;
+            cout << "Expected states: IN_CLOSE_SET='a', IN_OPEN_SET='b', NOT_EXPAND='c'" << endl;
           }
-          // } else if (pro_node->node_state == IN_CLOSE_SET) {
-          //   // Node is already in close set, skip it
-          //   // This can happen due to hash table collisions with spatial discretization
-          //   continue;
-          // } else if (pro_node->node_state == NOT_EXPAND) {
-          //   // Node exists but hasn't been expanded yet - this shouldn't happen
-          //   cout << "Warning: Found node in NOT_EXPAND state, this shouldn't happen" << endl;
-          //   cout << "Node state: " << pro_node->node_state << " (NOT_EXPAND='c')" << endl;
-          //   continue;
-          // } else {
-          //   cout << "error type in searching: node_state=" << static_cast<int>(pro_node->node_state) 
-          //        << " (as char: '" << pro_node->node_state << "')" << endl;
-          //   cout << "Expected states: IN_CLOSE_SET='a', IN_OPEN_SET='b', NOT_EXPAND='c'" << endl;
-          // }
         }
       }
     // init_search = false;
@@ -278,23 +304,54 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
 }
 
 void KinodynamicAstar::setParam(const std::shared_ptr<rclcpp::Node>& nh) {
-  nh->get_parameter_or("search/max_tau", max_tau_, -1.0);
-  nh->get_parameter_or("search/init_max_tau", init_max_tau_, -1.0);
-  nh->get_parameter_or("search/max_vel", max_vel_, -1.0);
-  nh->get_parameter_or("search/max_acc", max_acc_, -1.0);
-  nh->get_parameter_or("search/w_time", w_time_, -1.0);
-  nh->get_parameter_or("search/horizon", horizon_, -1.0);
-  nh->get_parameter_or("search/resolution_astar", resolution_, -1.0);
-  nh->get_parameter_or("search/time_resolution", time_resolution_, -1.0);
-  nh->get_parameter_or("search/lambda_heu", lambda_heu_, -1.0);
-  nh->get_parameter_or("search/allocate_num", allocate_num_, -1);
-  nh->get_parameter_or("search/check_num", check_num_, -1);
-  nh->get_parameter_or("search/optimistic", optimistic_, true);
-  tie_breaker_ = 1.0 + 1.0 / 10000;
+  cout << "[DEBUG] setParam called" << endl;
+  
+  // nh->declare_parameter<double>("search/max_tau", -1.0);
+  // nh->declare_parameter<double>("search/init_max_tau", -1.0);
+  // nh->declare_parameter<double>("search/max_vel", -1.0);
+  // nh->declare_parameter<double>("search/max_acc", -1.0);
+  // nh->declare_parameter<double>("search/w_time", -1.0);
+  // nh->declare_parameter<double>("search/horizon", -1.0);
+  // nh->declare_parameter<double>("search/resolution_astar", -1.0);
+  // nh->declare_parameter<double>("search/time_resolution", -1.0);
+  // nh->declare_parameter<double>("search/lambda_heu", -1.0);
+  // nh->declare_parameter<int>("search/allocate_num", -1);
+  // nh->declare_parameter<int>("search/check_num", -1);
+  // nh->declare_parameter<bool>("search/optimistic", true);
+  // nh->declare_parameter<double>("search/vel_margin", 0.0);
 
+  nh->get_parameter("search/max_tau", max_tau_);
+  nh->get_parameter("search/init_max_tau", init_max_tau_);
+  nh->get_parameter("search/max_vel", max_vel_);
+  nh->get_parameter("search/max_acc", max_acc_);
+  nh->get_parameter("search/w_time", w_time_);
+  nh->get_parameter("search/horizon", horizon_);
+  nh->get_parameter("search/resolution_astar", resolution_);
+  nh->get_parameter("search/time_resolution", time_resolution_);
+  nh->get_parameter("search/lambda_heu", lambda_heu_);
+  nh->get_parameter("search/allocate_num", allocate_num_);
+  nh->get_parameter("search/check_num", check_num_);
+  nh->get_parameter("search/optimistic", optimistic_);
   double vel_margin;
-  nh->get_parameter_or("search/vel_margin", vel_margin, 0.0);
+  nh->get_parameter("search/vel_margin", vel_margin);
+ 
   max_vel_ += vel_margin;
+  tie_breaker_ = 1.0 + 1.0 / 10000;
+  
+  cout << "[DEBUG] Parameters loaded:" << endl;
+  cout << "  max_tau_: " << max_tau_ << endl;
+  cout << "  init_max_tau_: " << init_max_tau_ << endl;
+  cout << "  max_vel_: " << max_vel_ << endl;
+  cout << "  max_acc_: " << max_acc_ << endl;
+  cout << "  w_time_: " << w_time_ << endl;
+  cout << "  horizon_: " << horizon_ << endl;
+  cout << "  resolution_: " << resolution_ << endl;
+  cout << "  time_resolution_: " << time_resolution_ << endl;
+  cout << "  lambda_heu_: " << lambda_heu_ << endl;
+  cout << "  allocate_num_: " << allocate_num_ << endl;
+  cout << "  check_num_: " << check_num_ << endl;
+  cout << "  optimistic_: " << optimistic_ << endl;
+  cout << "  vel_margin: " << vel_margin << endl;
 }
 
 void KinodynamicAstar::retrievePath(PathNodePtr end_node) {
@@ -473,6 +530,11 @@ vector<double> KinodynamicAstar::quartic(double a, double b, double c, double d,
 }
 
 void KinodynamicAstar::init() {
+  cout << "[DEBUG] Init called" << endl;
+  cout << "  allocate_num_: " << allocate_num_ << endl;
+  cout << "  resolution_: " << resolution_ << endl;
+  cout << "  time_resolution_: " << time_resolution_ << endl;
+  
   /* ---------- map params ---------- */
   this->inv_resolution_ = 1.0 / resolution_;
   inv_time_resolution_ = 1.0 / time_resolution_;
@@ -490,6 +552,8 @@ void KinodynamicAstar::init() {
   phi_ = Eigen::MatrixXd::Identity(6, 6);
   use_node_num_ = 0;
   iter_num_ = 0;
+  
+  cout << "[DEBUG] Init completed, path_node_pool_ size: " << path_node_pool_.size() << endl;
 }
 
 void KinodynamicAstar::setEnvironment(const EDTEnvironment::Ptr& env) {
@@ -497,6 +561,8 @@ void KinodynamicAstar::setEnvironment(const EDTEnvironment::Ptr& env) {
 }
 
 void KinodynamicAstar::reset() {
+  cout << "[DEBUG] Reset called, use_node_num_ was: " << use_node_num_ << endl;
+  
   expanded_nodes_.clear();
   path_nodes_.clear();
 
@@ -513,6 +579,8 @@ void KinodynamicAstar::reset() {
   iter_num_ = 0;
   is_shot_succ_ = false;
   has_path_ = false;
+  
+  cout << "[DEBUG] Reset completed, use_node_num_ now: " << use_node_num_ << endl;
 }
 
 std::vector<Eigen::Vector3d> KinodynamicAstar::getKinoTraj(double delta_t) {
@@ -554,6 +622,7 @@ std::vector<Eigen::Vector3d> KinodynamicAstar::getKinoTraj(double delta_t) {
 
   return state_list;
 }
+
 
 void KinodynamicAstar::getSamples(double& ts, vector<Eigen::Vector3d>& point_set,
                                   vector<Eigen::Vector3d>& start_end_derivatives) {

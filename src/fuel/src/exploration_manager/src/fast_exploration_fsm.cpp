@@ -1,4 +1,3 @@
-
 #include <plan_manage/planner_manager.h>
 #include <exploration_manager/fast_exploration_manager.h>
 #include <traj_utils/planning_visualization.h>
@@ -14,7 +13,7 @@ namespace fast_planner {
 void FastExplorationFSM::init(const std::shared_ptr<rclcpp::Node>& node) {
   fp_.reset(new FSMParam);
   fd_.reset(new FSMData);
-
+  this->node = node;
   /*  Fsm param  */
   // nh.param("fsm/thresh_replan1", fp_->replan_thresh1_, -1.0);
   // nh.param("fsm/thresh_replan2", fp_->replan_thresh2_, -1.0);
@@ -53,9 +52,14 @@ void FastExplorationFSM::init(const std::shared_ptr<rclcpp::Node>& node) {
   frontier_timer_ = node->create_wall_timer(std::chrono::milliseconds(500), std::bind(&FastExplorationFSM::frontierCallback, this));
 
   //trigger_sub_ = nh.subscribe("/waypoint_generator/waypoints", 1, &FastExplorationFSM::triggerCallback, this);
-  trigger_sub_ = node->create_subscription<nav_msgs::msg::Odometry>("/waypoint_generator/waypoints",1, std::bind(&FastExplorationFSM::triggerCallback, this, std::placeholders::_1));
-  //odom_sub_ = nh.subscribe("/odom_world", 1, &FastExplorationFSM::odometryCallback, this);
-  odom_sub_ = node->create_subscription<nav_msgs::msg::Odometry>("/odom_world", 1, std::bind(&FastExplorationFSM::odometryCallback, this, std::placeholders::_1));
+  trigger_sub_ = node->create_subscription<nav_msgs::msg::Path>(
+    "/waypoint_generator/waypoints", 1,
+    std::bind(&FastExplorationFSM::triggerCallback, this, std::placeholders::_1));
+
+  odom_sub_ = node->create_subscription<nav_msgs::msg::Odometry>(
+    "/odom_world", 1,
+    std::bind(&FastExplorationFSM::odometryCallback, this, std::placeholders::_1));
+
 
   //replan_pub_ = nh.advertise<std_msgs::Empty>("/planning/replan", 10);
   replan_pub_ = node->create_publisher<std_msgs::msg::Empty>("/planning/replan", 10);
@@ -63,6 +67,7 @@ void FastExplorationFSM::init(const std::shared_ptr<rclcpp::Node>& node) {
   new_pub_ = node->create_publisher<std_msgs::msg::Empty>("/planning/new", 10);
   //bspline_pub_ = nh.advertise<bspline::Bspline>("/planning/bspline", 10);
   bspline_pub_ = node->create_publisher<bspline::msg::Bspline>("/planning/bspline", 10);
+
 }
 
 
@@ -146,17 +151,41 @@ void FastExplorationFSM::FSMCallback() {
     case PUB_TRAJ: {
       double dt = (node->now() - fd_->newest_traj_.start_time).seconds();
       if (dt > 0) {
+        cout<< "before B-spline trajectory published!!!" << endl;
+        cout << "DEBUG: B-spline trajectory data:" << endl;
+        cout << "  order: " << fd_->newest_traj_.order << endl;
+        cout << "  pos_pts size: " << fd_->newest_traj_.pos_pts.size() << endl;
+        cout << "  knots size: " << fd_->newest_traj_.knots.size() << endl;
+        cout << "  yaw_pts size: " << fd_->newest_traj_.yaw_pts.size() << endl;
+        cout << "  yaw_dt: " << fd_->newest_traj_.yaw_dt << endl;
+        
+        // Check if we have enough control points
+        if (fd_->newest_traj_.pos_pts.size() < fd_->newest_traj_.order + 1) {
+          RCLCPP_ERROR(node->get_logger(), "Not enough position control points! Need at least %d, got %zu", 
+                      fd_->newest_traj_.order + 1, fd_->newest_traj_.pos_pts.size());
+          transitState(PLAN_TRAJ, "FSM");
+          return;
+        }
+        
+        if (fd_->newest_traj_.yaw_pts.size() < fd_->newest_traj_.order + 1) {
+          RCLCPP_ERROR(node->get_logger(), "Not enough yaw control points! Need at least %d, got %zu", 
+                      fd_->newest_traj_.order + 1, fd_->newest_traj_.yaw_pts.size());
+          transitState(PLAN_TRAJ, "FSM");
+          return;
+        }
+        
         bspline_pub_->publish(fd_->newest_traj_);
+        cout<< "B-spline trajectory published!!!" << endl;
         fd_->static_state_ = false;
         transitState(EXEC_TRAJ, "FSM");
-
-        thread vis_thread(&FastExplorationFSM::visualize, this);
-        vis_thread.detach();
+        std::thread vis_thread(&FastExplorationFSM::visualize, this);
+        vis_thread.detach();  
       }
       break;
     }
 
     case EXEC_TRAJ: {
+      cout<< "IN EXEC_TRAJ!!!" << endl;
       LocalTrajData* info = &planner_manager_->local_data_;
       double t_cur = (node->now() - info->start_time_).seconds();
 
@@ -184,18 +213,17 @@ void FastExplorationFSM::FSMCallback() {
 }
 
 int FastExplorationFSM::callExplorationPlanner() {
+  cout<< "IN callExplorationPlanner!!!" << endl;
   rclcpp::Time time_r = node->now() + rclcpp::Duration::from_seconds(fp_->replan_time_);
 
   int res = expl_manager_->planExploreMotion(fd_->start_pt_, fd_->start_vel_, fd_->start_acc_,
                                              fd_->start_yaw_);
   classic_ = false;
-
   // int res = expl_manager_->classicFrontier(fd_->start_pt_, fd_->start_yaw_[0]);
   // classic_ = true;
 
   // int res = expl_manager_->rapidFrontier(fd_->start_pt_, fd_->start_vel_, fd_->start_yaw_[0],
   // classic_);
-
   if (res == SUCCEED) {
     auto info = &planner_manager_->local_data_;
     info->start_time_ = (node->now() - time_r).seconds() > 0 ? node->now() : time_r;
@@ -204,7 +232,18 @@ int FastExplorationFSM::callExplorationPlanner() {
     bspline.order = planner_manager_->pp_.bspline_degree_;
     bspline.start_time = info->start_time_;
     bspline.traj_id = info->traj_id_;
+    
     Eigen::MatrixXd pos_pts = info->position_traj_.getControlPoint();
+    cout << "DEBUG: B-spline construction - order: " << bspline.order 
+         << ", pos_pts.rows(): " << pos_pts.rows() << endl;
+    
+    // Check if we have enough control points for the given order
+    if (pos_pts.rows() < bspline.order + 1) {
+      cout << "ERROR: Not enough control points for B-spline! Need at least " 
+           << (bspline.order + 1) << " but got " << pos_pts.rows() << endl;
+      return FAIL;
+    }
+    
     for (int i = 0; i < pos_pts.rows(); ++i) {
       geometry_msgs::msg::Point pt;
       pt.x = pos_pts(i, 0);
@@ -213,10 +252,12 @@ int FastExplorationFSM::callExplorationPlanner() {
       bspline.pos_pts.push_back(pt);
     }
     Eigen::VectorXd knots = info->position_traj_.getKnot();
+    cout << "DEBUG: knots.rows(): " << knots.rows() << endl;
     for (int i = 0; i < knots.rows(); ++i) {
       bspline.knots.push_back(knots(i));
     }
     Eigen::MatrixXd yaw_pts = info->yaw_traj_.getControlPoint();
+    cout << "DEBUG: yaw_pts.rows(): " << yaw_pts.rows() << endl;
     for (int i = 0; i < yaw_pts.rows(); ++i) {
       double yaw = yaw_pts(i, 0);
       bspline.yaw_pts.push_back(yaw);
@@ -224,6 +265,7 @@ int FastExplorationFSM::callExplorationPlanner() {
     bspline.yaw_dt = info->yaw_traj_.getKnotSpan();
     fd_->newest_traj_ = bspline;
   }
+  cout<< "END callExplorationPlanner!!!" << endl;
   return res;
 }
 
@@ -247,6 +289,7 @@ void FastExplorationFSM::visualize() {
     // visualization_->drawBox(ed_ptr->frontier_boxes_[i].first, ed_ptr->frontier_boxes_[i].second,
     //                         Vector4d(0.5, 0, 1, 0.3), "frontier_boxes", i, 4);
   }
+
   for (int i = ed_ptr->frontiers_.size(); i < last_ftr_num; ++i) {
     visualization_->drawCubes({}, 0.1, Vector4d(0, 0, 0, 1), "frontier", i, 4);
     // visualization_->drawBox(Vector3d(0, 0, 0), Vector3d(0, 0, 0), Vector4d(1, 0, 0, 0.3),
@@ -355,8 +398,8 @@ void FastExplorationFSM::frontierCallback() {
   // }
 }
 
-void FastExplorationFSM::triggerCallback(const nav_msgs::msg::Odometry::ConstSharedPtr msg) {
-  if (msg->pose.pose.position.z < -0.1) return;
+void FastExplorationFSM::triggerCallback(const nav_msgs::msg::Path::ConstSharedPtr msg) {
+  if (msg->poses.empty() || msg->poses[0].pose.position.z < -0.1) return;
   if (state_ != WAIT_TRIGGER) return;
   fd_->trigger_ = true;
   cout << "Triggered!" << endl;
@@ -376,6 +419,7 @@ void FastExplorationFSM::safetyCallback() {
 }
 
 void FastExplorationFSM::odometryCallback(const nav_msgs::msg::Odometry::ConstSharedPtr msg) {
+
   fd_->odom_pos_(0) = msg->pose.pose.position.x;
   fd_->odom_pos_(1) = msg->pose.pose.position.y;
   fd_->odom_pos_(2) = msg->pose.pose.position.z;

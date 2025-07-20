@@ -10,8 +10,14 @@
 #include <opencv2/opencv.hpp>
 #include <chrono>
 #include <fstream>
+#include <message_filters/sync_policies/approximate_time.h>
 
 namespace fast_planner {
+using ApproxSyncPolicyImagePose = message_filters::sync_policies::ApproximateTime<
+    sensor_msgs::msg::Image, nav_msgs::msg::Odometry>;
+using ApproxSyncPolicyCloudPose = message_filters::sync_policies::ApproximateTime<
+    sensor_msgs::msg::PointCloud2, nav_msgs::msg::Odometry>;
+
 MapROS::MapROS() {
 }
 
@@ -40,7 +46,7 @@ void MapROS::init() {
   // node_->declare_parameter("map_ros/show_all_map", false);
   // node_->declare_parameter("map_ros/frame_id", std::string("world"));
   // double fx_, fy_, cx_, cy_;
-
+  // this->node_ = node_;
   node_->get_parameter("map_ros/fx", fx_);
   node_->get_parameter("map_ros/fy", fy_);
   node_->get_parameter("map_ros/cx", cx_);
@@ -90,7 +96,29 @@ void MapROS::init() {
   update_range_pub_ = node_->create_publisher<visualization_msgs::msg::Marker>("/sdf_map/update_range", 10);
   depth_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("/sdf_map/depth_cloud", 10);
 
+  depth_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(node_, "/map_ros/depth");
+  cloud_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::PointCloud2>>(node_, "/map_ros/cloud");
+  pose_sub_ = std::make_shared<message_filters::Subscriber<nav_msgs::msg::Odometry>>(node_, "/map_ros/pose");
+
+  // sync_image_pose_ = std::make_shared<message_filters::Synchronizer<SyncPolicyImagePose>>(
+  //     SyncPolicyImagePose(100), *depth_sub_, *pose_sub_);
+  // sync_image_pose_->registerCallback(std::bind(&MapROS::depthPoseCallback, this, std::placeholders::_1, std::placeholders::_2));
+
+  // sync_cloud_pose_ = std::make_shared<message_filters::Synchronizer<SyncPolicyCloudPose>>(
+  //     SyncPolicyCloudPose(100), *cloud_sub_, *pose_sub_);
+  // sync_cloud_pose_->registerCallback(std::bind(&MapROS::cloudPoseCallback, this, std::placeholders::_1, std::placeholders::_2));
+
+  sync_image_pose_ = std::make_shared<message_filters::Synchronizer<ApproxSyncPolicyImagePose>>(
+      ApproxSyncPolicyImagePose(100), *depth_sub_, *pose_sub_);
+  sync_image_pose_->registerCallback(std::bind(&MapROS::depthPoseCallback, this, std::placeholders::_1, std::placeholders::_2));
+
+  sync_cloud_pose_ = std::make_shared<message_filters::Synchronizer<ApproxSyncPolicyCloudPose>>(
+      ApproxSyncPolicyCloudPose(100), *cloud_sub_, *pose_sub_);
+  sync_cloud_pose_->registerCallback(std::bind(&MapROS::cloudPoseCallback, this, std::placeholders::_1, std::placeholders::_2));
   map_start_time_ = node_->now();
+
+  sync_image_pose_->setMaxIntervalDuration(rclcpp::Duration::from_seconds(0.2));
+  sync_cloud_pose_->setMaxIntervalDuration(rclcpp::Duration::from_seconds(0.2));
 }
 
 void MapROS::visCallback() {
@@ -126,14 +154,17 @@ void MapROS::depthPoseCallback(const sensor_msgs::msg::Image::ConstSharedPtr& im
   camera_pos_(0) = pose->pose.pose.position.x;
   camera_pos_(1) = pose->pose.pose.position.y;
   camera_pos_(2) = pose->pose.pose.position.z;
+
+
   if (!map_->isInMap(camera_pos_))  // exceed mapped region
     return;
 
   camera_q_ = Eigen::Quaterniond(pose->pose.pose.orientation.w, pose->pose.pose.orientation.x,
                                  pose->pose.pose.orientation.y, pose->pose.pose.orientation.z);
   cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(img, img->encoding);
-  if (img->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
+  if (img->encoding == sensor_msgs::image_encodings::TYPE_32FC1){
     (cv_ptr->image).convertTo(cv_ptr->image, CV_16UC1, k_depth_scaling_factor_);
+  }
   cv_ptr->image.copyTo(*depth_image_);
 
   auto t1 = node_->now();
@@ -158,6 +189,7 @@ void MapROS::depthPoseCallback(const sensor_msgs::msg::Image::ConstSharedPtr& im
 
 void MapROS::cloudPoseCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr& msg,
                                const nav_msgs::msg::Odometry::ConstSharedPtr& pose) {
+  std::cerr << "in cloudPoseCallback" << std::endl;
   camera_pos_(0) = pose->pose.pose.position.x;
   camera_pos_(1) = pose->pose.pose.position.y;
   camera_pos_(2) = pose->pose.pose.position.z;
