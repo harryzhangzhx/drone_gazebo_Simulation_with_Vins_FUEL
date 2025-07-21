@@ -65,9 +65,7 @@ def launch_setup(context, *args, **kwargs):
         'exploration/yd': 3.1415926 * 60 / 180.0,
         'exploration/ydd': 3.1415926 * 90 / 180.0,
         'exploration/w_dir': 1.5,
-        'exploration/tsp_dir': os.path.join(
-            exploration_manager_share, 'resource'
-        ),
+        'exploration/tsp_dir': "/home/harry/drone_circle/src/fuel/src/utils/lkh_tsp_solver/resource",
         'exploration/relax_time': 1.0,
         'cmu_exploration': False,
         'frontier/cluster_min': 100,
@@ -110,6 +108,7 @@ def launch_setup(context, *args, **kwargs):
         'manager/use_optimization': True,
         'manager/use_active_perception': True,
         'manager/min_time': True,
+        'manager/bspline_degree': 3,
 
         'search/max_tau': 0.8,
         'search/init_max_tau': 1.0,
@@ -193,6 +192,11 @@ def launch_setup(context, *args, **kwargs):
                 'traj_server/init_x': float(lc('init_x')),
                 'traj_server/init_y': float(lc('init_y')),
                 'traj_server/init_z': float(lc('init_z')),
+                'perception_utils/top_angle': 0.56125,
+                'perception_utils/left_angle': 0.69222,
+                'perception_utils/right_angle': 0.68901,
+                'perception_utils/max_dist': 4.5,
+                'perception_utils/vis_dist': 1.0,
             }]
         ),
         Node(
@@ -212,13 +216,19 @@ def launch_setup(context, *args, **kwargs):
             executable='rviz2',
             name='rvizvisualisation',
             output='log',
-            arguments=['-d', os.path.join(plan_manage_share, 'config', 'traj.rviz')]
+            arguments=['-d', '/home/harry/drone_circle/src/fuel/src/exploration_manager/config/ros2_fuel.rviz']
         ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='tf_53',
-            arguments=['0', '0', '0', '0', '0', '0', '1', 'world', 'navigation']
+            name='tf_world_odom',
+            output='screen',
+            arguments=[
+                '--x', '0', '--y', '0', '--z', '0',
+                '--roll', '0', '--pitch', '0', '--yaw', '0',
+                '--frame-id', 'world',
+                '--child-frame-id', 'navigation'
+            ]
         )
     ]
 
@@ -234,9 +244,9 @@ def generate_launch_description():
         DeclareLaunchArgument('box_max_y', default_value='12.0'),
         DeclareLaunchArgument('box_max_z', default_value='2.0'),
         DeclareLaunchArgument('odometry_topic', default_value='/odom'),
-        DeclareLaunchArgument('sensor_pose_topic', default_value='/pose_rotated'),
-        DeclareLaunchArgument('depth_topic', default_value='/camera/depth/image'),
-        DeclareLaunchArgument('cloud_topic', default_value='/depth_camera/points'),
+        DeclareLaunchArgument('sensor_pose_topic', default_value='/odom'),
+        DeclareLaunchArgument('depth_topic', default_value='/depth_camera'),
+        DeclareLaunchArgument('cloud_topic', default_value='/depth_camera/points1'),
         DeclareLaunchArgument('cx', default_value='321.04638671875'),
         DeclareLaunchArgument('cy', default_value='243.44969177246094'),
         DeclareLaunchArgument('fx', default_value='387.229248046875'),

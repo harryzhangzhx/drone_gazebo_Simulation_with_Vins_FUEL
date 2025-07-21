@@ -100,7 +100,7 @@
     <param name="exploration/yd" value="$(eval '60 * 3.1415926 / 180.0')" />
     <param name="exploration/ydd" value="$(eval '90 * 3.1415926 / 180.0')" />
     <param name="exploration/w_dir" value="1.5" />
-    <param name="exploration/tsp_dir" value="$(find-pkg-share lkh_tsp_solver)/resource"/>
+    <param name="exploration/tsp_dir" value="/home/harry/drone_circle/src/fuel/src/utils/lkh_tsp_solver/resource"/>
     <param name="exploration/relax_time" value="1.0" />
     <!--by chen-->
     <param name="cmu_exploration" value="false" />

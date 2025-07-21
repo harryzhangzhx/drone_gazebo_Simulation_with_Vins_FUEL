@@ -1,3 +1,75 @@
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Editor settings
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+node_modules/
+bower_components/
+
+# Build outputs
+dist/
 build/
-log/
-install/
+out/
+target/
+coverage/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Compiled files
+*.class
+*.o
+*.so
+*.exe
+*.dll
+
+# Mac/Linux temporary files
+*.swp
+*~
+.cache/
+tmp/
+temp/
+
+# JetBrains
+*.iml
+*.ipr
+*.iws
+
+# Git
+*.orig
+*.patch
+
+# VS Code settings
+.history/
+
+**/px4_msgs/
+**/px4_msgs_old/
+**/src/px4_ros_com/
+**/src/translation_node/
+**/build/
+**/install/

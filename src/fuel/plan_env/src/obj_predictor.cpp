@@ -27,7 +27,7 @@ namespace fast_planner
     pos_t(0) = msg->pose.position.x;
     pos_t(1) = msg->pose.position.y;
     pos_t(2) = msg->pose.position.z;
-    pos_t(3) = (rclcpp::Clock().now() - ObjHistory::global_start_time_).seconds();
+    pos_t(3) = (rclcpp::Clock(RCL_ROS_TIME).now() - ObjHistory::global_start_time_).seconds();
 
     history_.push_back(pos_t);
 
@@ -52,9 +52,9 @@ namespace fast_planner
     // node_handle_->declare_parameter("prediction/lambda", 1.0);
     // node_handle_->declare_parameter("prediction/predict_rate", 1.0);
 
-    node_handle_->get_parameter("prediction/obj_num", obj_num_);
-    node_handle_->get_parameter("prediction/lambda", lambda_);
-    node_handle_->get_parameter("prediction/predict_rate", predict_rate_);
+    node_handle_->get_parameter_or("prediction/obj_num", obj_num_, 5);
+    node_handle_->get_parameter_or("prediction/lambda", lambda_, 1.0);
+    node_handle_->get_parameter_or("prediction/predict_rate", predict_rate_, 1.0);
 
     predict_trajs_ = std::make_shared<vector<PolynomialPrediction>>();
     predict_trajs_->resize(obj_num_);
