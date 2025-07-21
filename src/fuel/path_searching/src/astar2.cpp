@@ -75,7 +75,7 @@ namespace fast_planner
     open_set_map_.insert(make_pair(cur_node->index, cur_node));
     use_node_num_ += 1;
 
-    const auto t1 = rclcpp::Clock().now();
+    const auto t1 = rclcpp::Clock(RCL_ROS_TIME).now();
 
     /* ---------- search loop ---------- */
     while (!open_set_.empty())
@@ -91,7 +91,7 @@ namespace fast_planner
       }
 
       // Early termination if time up
-      if ((rclcpp::Clock().now() - t1).seconds() > max_search_time_)
+      if ((rclcpp::Clock(RCL_ROS_TIME).now() - t1).seconds() > max_search_time_)
       {
         // std::cout << "early";
         early_terminate_cost_ = cur_node->g_score + getDiagHeu(cur_node->position, end_pt);

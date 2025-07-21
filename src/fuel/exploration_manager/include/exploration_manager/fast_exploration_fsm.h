@@ -67,7 +67,7 @@ namespace fast_planner
     rclcpp::TimerBase::SharedPtr frontier_timer_;
 
     // ros::Subscriber trigger_sub_, odom_sub_;
-    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr trigger_sub_;
+    rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr trigger_sub_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
 
     // ros::Publisher replan_pub_, new_pub_, bspline_pub_;
@@ -83,7 +83,7 @@ namespace fast_planner
     void FSMCallback();
     void safetyCallback();
     void frontierCallback();
-    void triggerCallback(const nav_msgs::msg::Odometry::ConstSharedPtr msg);
+    void triggerCallback(const nav_msgs::msg::Path::ConstSharedPtr msg);
     void odometryCallback(const nav_msgs::msg::Odometry::ConstSharedPtr msg);
     void visualize();
     void clearVisMarker();

@@ -1,0 +1,4 @@
+PROBLEM_FILE = /home/harry/drone_circle/src/fuel/src/utils/lkh_tsp_solver/resource/single.tsp
+GAIN23 = NO
+OUTPUT_TOUR_FILE =/home/harry/drone_circle/src/fuel/src/utils/lkh_tsp_solver/resource/single.txt
+RUNS = 1

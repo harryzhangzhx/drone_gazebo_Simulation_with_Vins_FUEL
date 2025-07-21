@@ -143,7 +143,6 @@ namespace fast_planner
     visualization_msgs::msg::Marker mk;
     fillBasicInfo(mk, Eigen::Vector3d(scale, scale, scale), color, ns, id,
                   visualization_msgs::msg::Marker::CUBE_LIST);
-
     // clean old marker
     mk.action = visualization_msgs::msg::Marker::DELETE;
     pubs_[pub_id]->publish(mk);

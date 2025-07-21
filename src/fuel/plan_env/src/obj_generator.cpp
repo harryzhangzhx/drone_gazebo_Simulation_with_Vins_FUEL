@@ -58,17 +58,17 @@ int main(int argc, char **argv)
   // global_node->declare_parameter("obj_generator/scale2", 2.5);
   // global_node->declare_parameter("obj_generator/interval", 2.5);
 
-  global_node->get_parameter("obj_generator/obj_num", obj_num);
-  global_node->get_parameter("obj_generator/xy_size", _xy_size);
-  global_node->get_parameter("obj_generator/h_size", _h_size);
-  global_node->get_parameter("obj_generator/vel", _vel);
-  global_node->get_parameter("obj_generator/yaw_dot", _yaw_dot);
-  global_node->get_parameter("obj_generator/acc_r1", _acc_r1);
-  global_node->get_parameter("obj_generator/acc_r2", _acc_r2);
-  global_node->get_parameter("obj_generator/acc_z", _acc_z);
-  global_node->get_parameter("obj_generator/scale1", _scale1);
-  global_node->get_parameter("obj_generator/scale2", _scale2);
-  global_node->get_parameter("obj_generator/interval", _interval);
+  global_node->get_parameter_or("obj_generator/obj_num", obj_num, 10);
+  global_node->get_parameter_or("obj_generator/xy_size", _xy_size, 15.0);
+  global_node->get_parameter_or("obj_generator/h_size", _h_size, 5.0);
+  global_node->get_parameter_or("obj_generator/vel", _vel, 5.0);
+  global_node->get_parameter_or("obj_generator/yaw_dot", _yaw_dot, 5.0);
+  global_node->get_parameter_or("obj_generator/acc_r1", _acc_r1, 4.0);
+  global_node->get_parameter_or("obj_generator/acc_r2", _acc_r2, 6.0);
+  global_node->get_parameter_or("obj_generator/acc_z", _acc_z, 3.0);
+  global_node->get_parameter_or("obj_generator/scale1", _scale1, 1.5);
+  global_node->get_parameter_or("obj_generator/scale2", _scale2, 2.5);
+  global_node->get_parameter_or("obj_generator/interval", _interval, 2.5);
 
   obj_pub = global_node->create_publisher<visualization_msgs::msg::Marker>("/dynamic/obj", 10);
   for (int i = 0; i < obj_num; ++i)

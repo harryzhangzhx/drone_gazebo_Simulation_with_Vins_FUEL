@@ -116,7 +116,7 @@ void DroneCircleNode::publish_offboard_control_mode()
 void DroneCircleNode::publish_trajectory_setpoint()
 {
   TrajectorySetpoint msg{};
-  msg.position = {0.0, 0.0, -5.0}; // Hover at (0, 0, -5)
+  msg.position = {0.0, 0.0, -1.0}; // Hover at (0, 0, -1)
   msg.yaw = 0.0f;                  // Keep yaw fixed
   msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
   trajectory_setpoint_publisher_->publish(msg);
@@ -124,6 +124,7 @@ void DroneCircleNode::publish_trajectory_setpoint()
 
 void DroneCircleNode::publish_vehicle_command(uint16_t command, float param1, float param2)
 {
+
   VehicleCommand msg{};
   msg.param1 = param1;
   msg.param2 = param2;
@@ -139,6 +140,7 @@ void DroneCircleNode::publish_vehicle_command(uint16_t command, float param1, fl
 
 int main(int argc, char **argv)
 {
+
   std::cout << "Starting Circular Offboard control node..." << std::endl;
   setvbuf(stdout, NULL, _IONBF, BUFSIZ);
   rclcpp::init(argc, argv);

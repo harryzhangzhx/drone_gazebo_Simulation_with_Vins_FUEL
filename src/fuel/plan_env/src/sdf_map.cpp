@@ -31,17 +31,17 @@ namespace fast_planner
     // nh->declare_parameter("sdf_map/optimistic", true);
     // nh->declare_parameter("sdf_map/signed_dist", false);
 
-    nh->get_parameter("sdf_map/resolution", mp_->resolution_);
-    nh->get_parameter("sdf_map/map_size_x", x_size);
-    nh->get_parameter("sdf_map/map_size_y", y_size);
-    nh->get_parameter("sdf_map/map_size_z", z_size);
-    nh->get_parameter("sdf_map/obstacles_inflation", mp_->obstacles_inflation_);
-    nh->get_parameter("sdf_map/local_bound_inflate", mp_->local_bound_inflate_);
-    nh->get_parameter("sdf_map/local_map_margin", mp_->local_map_margin_);
-    nh->get_parameter("sdf_map/ground_height", mp_->ground_height_);
-    nh->get_parameter("sdf_map/default_dist", mp_->default_dist_);
-    nh->get_parameter("sdf_map/optimistic", mp_->optimistic_);
-    nh->get_parameter("sdf_map/signed_dist", mp_->signed_dist_);
+    nh->get_parameter_or("sdf_map/resolution", mp_->resolution_, -1.0);
+    nh->get_parameter_or("sdf_map/map_size_x", x_size, -1.0);
+    nh->get_parameter_or("sdf_map/map_size_y", y_size, -1.0);
+    nh->get_parameter_or("sdf_map/map_size_z", z_size, -1.0);
+    nh->get_parameter_or("sdf_map/obstacles_inflation", mp_->obstacles_inflation_, -1.0);
+    nh->get_parameter_or("sdf_map/local_bound_inflate", mp_->local_bound_inflate_, 1.0);
+    nh->get_parameter_or("sdf_map/local_map_margin", mp_->local_map_margin_, 1);
+    nh->get_parameter_or("sdf_map/ground_height", mp_->ground_height_, 1.0);
+    nh->get_parameter_or("sdf_map/default_dist", mp_->default_dist_, 5.0);
+    nh->get_parameter_or("sdf_map/optimistic", mp_->optimistic_, true);
+    nh->get_parameter_or("sdf_map/signed_dist", mp_->signed_dist_, false);
 
     mp_->local_bound_inflate_ = std::max(mp_->resolution_, mp_->local_bound_inflate_);
     mp_->resolution_inv_ = 1 / mp_->resolution_;
@@ -60,13 +60,13 @@ namespace fast_planner
     // nh->declare_parameter("sdf_map/max_ray_length", -0.1);
     // nh->declare_parameter("sdf_map/virtual_ceil_height", -0.1);
 
-    nh->get_parameter("sdf_map/p_hit", mp_->p_hit_);
-    nh->get_parameter("sdf_map/p_miss", mp_->p_miss_);
-    nh->get_parameter("sdf_map/p_min", mp_->p_min_);
-    nh->get_parameter("sdf_map/p_max", mp_->p_max_);
-    nh->get_parameter("sdf_map/p_occ", mp_->p_occ_);
-    nh->get_parameter("sdf_map/max_ray_length", mp_->max_ray_length_);
-    nh->get_parameter("sdf_map/virtual_ceil_height", mp_->virtual_ceil_height_);
+    nh->get_parameter_or("sdf_map/p_hit", mp_->p_hit_, 0.70);
+    nh->get_parameter_or("sdf_map/p_miss", mp_->p_miss_, 0.35);
+    nh->get_parameter_or("sdf_map/p_min", mp_->p_min_, 0.12);
+    nh->get_parameter_or("sdf_map/p_max", mp_->p_max_, 0.97);
+    nh->get_parameter_or("sdf_map/p_occ", mp_->p_occ_, 0.80);
+    nh->get_parameter_or("sdf_map/max_ray_length", mp_->max_ray_length_, -0.1);
+    nh->get_parameter_or("sdf_map/virtual_ceil_height", mp_->virtual_ceil_height_, -0.1);
 
     auto logit = [](const double &x)
     { return log(x / (1 - x)); };
@@ -115,6 +115,7 @@ namespace fast_planner
 
     caster_.reset(new RayCaster);
     caster_->setParams(mp_->resolution_, mp_->map_origin_);
+    std::cerr << "sdf_map initialized" << std::endl;
   }
 
   void SDFMap::resetBuffer()

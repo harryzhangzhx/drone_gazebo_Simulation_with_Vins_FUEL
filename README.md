@@ -7,6 +7,7 @@ Prerequisites:
 3. install the uXFRCE-messaging system according to the steps outlined here: https://docs.px4.io/main/en/middleware/uxrce_dds.html#micro-xrce-dds-agent-installation
 
 
+
 Steps to run this package:
 
 1. Clone the repo in your ros2 workspace using: git clone --recursive https://github.com/harryzhangzhx/drone_gazebo_Simulation_with_Vins_FUEL.git
@@ -55,3 +56,8 @@ List of ROS2 topics that can be used:
 /pose_rotated: rotated odometry in the format of Posestamp, for sensor_pose_topic in FUEL\
 /world/baylands/model/x500_depth_0/link/base_link/sensor/imu_sensor/imu: IMU data\
 /world/baylands/model/x500_depth_0/link/camera_link/sensor/IMX214/image: RGB image (if need to change the scene, subscribers to these two topics need to be changed accordingly)
+
+Updates July 20:
+The px4 odometry converter now publish ros topic in ros coordinates. \
+A clock topic is outputed from Gazebo, make sure that all ros time follows this timestamp. \
+The FUEL pipeline is mostly debugged. To trigger the FUEL algorithm, use the same method as the original repo by clicking a navigation goal on RVIZ. 

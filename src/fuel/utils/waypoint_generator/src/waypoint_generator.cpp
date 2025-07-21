@@ -21,7 +21,7 @@ using bfmt = boost::format;
 rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pub1;
 rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pub2;
 // rclcpp::Publisher<>::SharedPtr pub3;
-string waypoint_type = string("manual");
+string waypoint_type = string("point");
 bool is_odom_ready;
 nav_msgs::msg::Odometry odom;
 nav_msgs::msg::Path waypoints;
@@ -134,8 +134,9 @@ void load_waypoints(const std::shared_ptr<rclcpp::Node> &node, const rclcpp::Tim
 
 void publish_waypoints()
 {
+  RCLCPP_INFO(rclcpp::get_logger("waypoint_generator"), "publish_waypoints!!!!");
   waypoints.header.frame_id = std::string("world");
-  waypoints.header.stamp = rclcpp::Clock().now();
+  waypoints.header.stamp = rclcpp::Clock(RCL_ROS_TIME).now();
   pub1->publish(waypoints);
   geometry_msgs::msg::PoseStamped init_pose;
   init_pose.header = odom.header;
@@ -150,7 +151,7 @@ void publish_waypoints_vis()
   nav_msgs::msg::Path wp_vis = waypoints;
   geometry_msgs::msg::PoseArray poseArray;
   poseArray.header.frame_id = std::string("world");
-  poseArray.header.stamp = rclcpp::Clock().now();
+  poseArray.header.stamp = rclcpp::Clock(RCL_ROS_TIME).now();
 
   {
     geometry_msgs::msg::Pose init_pose;
@@ -205,11 +206,9 @@ void goal_callback(const geometry_msgs::msg::PoseStamped::ConstSharedPtr msg, st
           ROS_ERROR("[waypoint_generator] No odom!");
           return;
       }*/
-
-  trigged_time = rclcpp::Clock().now(); // odom.header.stamp;
-                                        // ROS_ASSERT(trigged_time > ros::Time(0));
-
-  // ros::NodeHandle n("~");
+  trigged_time = rclcpp::Clock(RCL_ROS_TIME).now(); // odom.header.stamp;
+                                                    // ROS_ASSERT(trigged_time > ros::Time(0));
+                                                    // ros::NodeHandle n("~");
   // rclcpp::Node::SharedPtr node;
 
   // n.param("waypoint_type", waypoint_type, string("manual"));
@@ -218,6 +217,7 @@ void goal_callback(const geometry_msgs::msg::PoseStamped::ConstSharedPtr msg, st
 
   // Get the parameter value
   node->get_parameter("waypoint_type", waypoint_type);
+  RCLCPP_INFO(rclcpp::get_logger("waypoint_generator"), "goal_callback!!!! waypoint_type: %s", waypoint_type.c_str());
 
   if (waypoint_type == string("circle"))
   {
@@ -378,8 +378,8 @@ int main(int argc, char **argv)
 
   // pub1 = n.advertise<nav_msgs::msg::Path>("waypoints", 50);
   // pub2 = n.advertise<geometry_msgs::msg::PoseArray>("waypoints_vis", 10);
-  pub1 = node->create_publisher<nav_msgs::msg::Path>("waypoints", 50);
-  pub2 = node->create_publisher<geometry_msgs::msg::PoseArray>("waypoints_vis", 10);
+  pub1 = node->create_publisher<nav_msgs::msg::Path>("waypoint_generator/waypoints", 50);
+  pub2 = node->create_publisher<geometry_msgs::msg::PoseArray>("waypoint_generator/waypoints_vis", 10);
 
   trigged_time = rclcpp::Time(0);
 

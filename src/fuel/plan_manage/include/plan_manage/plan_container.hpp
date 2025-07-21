@@ -237,7 +237,7 @@ namespace fast_planner
 
     void resetDuration()
     {
-      auto now = rclcpp::Clock().now();
+      auto now = rclcpp::Clock(RCL_ROS_TIME).now();
       if (traj1_.traj_id_ != 0)
       {
         double t_stop = (now - traj1_.start_time_).seconds();
