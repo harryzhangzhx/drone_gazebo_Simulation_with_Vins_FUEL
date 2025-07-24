@@ -1,0 +1,46 @@
+<mxfile host="65bd71144e" pages="3">
+    <diagram id="kBfOB2SBIhDGXqwLswxl" name="structure">
+        <mxGraphModel dx="923" dy="614" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
+            <root>
+                <mxCell id="L_x6KOI5Ie3beH957Cwe-0"/>
+                <mxCell id="L_x6KOI5Ie3beH957Cwe-1" parent="L_x6KOI5Ie3beH957Cwe-0"/>
+                <mxCell id="zKkroPG85qh2kXkbWr4B-0" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="L_x6KOI5Ie3beH957Cwe-1" vertex="1">
+                    <mxGeometry x="20" y="183" width="780" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="zKkroPG85qh2kXkbWr4B-1" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="L_x6KOI5Ie3beH957Cwe-1" vertex="1">
+                    <mxGeometry x="20" y="280" width="780" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="zKkroPG85qh2kXkbWr4B-2" value="implement" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1" parent="L_x6KOI5Ie3beH957Cwe-1" vertex="1">
+                    <mxGeometry x="20" y="280" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="zKkroPG85qh2kXkbWr4B-3" value="finite state machine" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;" parent="L_x6KOI5Ie3beH957Cwe-1" vertex="1">
+                    <mxGeometry x="490" y="290" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="zKkroPG85qh2kXkbWr4B-4" value="logic&lt;div&gt;1. idle&lt;/div&gt;&lt;div&gt;2. task: viewpoint available or occupied&lt;/div&gt;&lt;div&gt;3. exceptions (e.g. failure of odm)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;" parent="L_x6KOI5Ie3beH957Cwe-1" vertex="1">
+                    <mxGeometry x="180" y="290" width="290" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="zKkroPG85qh2kXkbWr4B-5" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;ros service manager&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;" parent="L_x6KOI5Ie3beH957Cwe-1" vertex="1">
+                    <mxGeometry x="490" y="193" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="zKkroPG85qh2kXkbWr4B-6" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="L_x6KOI5Ie3beH957Cwe-1" vertex="1">
+                    <mxGeometry x="20" y="380" width="780" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="zKkroPG85qh2kXkbWr4B-7" value="example" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1" parent="L_x6KOI5Ie3beH957Cwe-1" vertex="1">
+                    <mxGeometry x="20" y="380" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="zKkroPG85qh2kXkbWr4B-8" value="exmample about how to use the library" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;" parent="L_x6KOI5Ie3beH957Cwe-1" vertex="1">
+                    <mxGeometry x="180" y="390" width="280" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="zKkroPG85qh2kXkbWr4B-9" value="interface" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1" parent="L_x6KOI5Ie3beH957Cwe-1" vertex="1">
+                    <mxGeometry x="20" y="183" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="zKkroPG85qh2kXkbWr4B-10" value="main&lt;div&gt;(init node)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;" parent="L_x6KOI5Ie3beH957Cwe-1" vertex="1">
+                    <mxGeometry x="180" y="193" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="zKkroPG85qh2kXkbWr4B-11" value="ros topic manager" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;" parent="L_x6KOI5Ie3beH957Cwe-1" vertex="1">
+                    <mxGeometry x="340" y="193" width="120" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

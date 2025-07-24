@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>path_planner</name>
+  <version>0.0.0</version>
+  <description>Path planning module</description>
+
+  <maintainer email="szhang.bc@gmail.com">ShuZ</maintainer>
+  <license>MIT</license>
+
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>utilities</depend>
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>eigen</depend>
+  <depend>plan_env</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
