@@ -64,6 +64,7 @@ set(msg_files
   "msg/SO3Command.msg"
   "msg/StatusData.msg"
   "msg/TRPYCommand.msg"
+  "msg/NextPosAndYaw.msg"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>controller_manager</name>
+  <version>0.0.0</version>
+  <description>The controller_manager package</description>
+
+  <maintainer email="szhang.bc@gmail.com">ShuZ</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>quadrotor_msgs</depend>
+  <depend>path_planner</depend>
+  <depend>controller</depend>
+  <depend>governor</depend>
+  <depend>utilities</depend>
+  <depend>dsm</depend>
+  <depend>eigen3_cmake_module</depend>
+  <exec_depend>libeigen3-dev</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
+

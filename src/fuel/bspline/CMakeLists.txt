@@ -20,7 +20,6 @@ find_package(PCL REQUIRED COMPONENTS common io)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Bspline.msg"
-  "msg/NextPosAndYaw.msg"
   DEPENDENCIES 
     std_msgs 
     geometry_msgs

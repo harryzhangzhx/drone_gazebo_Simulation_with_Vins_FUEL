@@ -1,0 +1,31 @@
+<mxfile host="65bd71144e" pages="3">
+    <diagram id="k7U1leZ_NVyK1WPOzW_l" name="structure">
+        <mxGraphModel dx="646" dy="430" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="keOr7OvfMAd7OnkER-1M-0"/>
+                <mxCell id="keOr7OvfMAd7OnkER-1M-1" parent="keOr7OvfMAd7OnkER-1M-0"/>
+                <mxCell id="FvBOYgAS-_ke2ZwoTicX-11" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="keOr7OvfMAd7OnkER-1M-1" vertex="1">
+                    <mxGeometry x="20" y="280" width="780" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="FvBOYgAS-_ke2ZwoTicX-12" value="config" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1" parent="keOr7OvfMAd7OnkER-1M-1" vertex="1">
+                    <mxGeometry x="20" y="280" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="FvBOYgAS-_ke2ZwoTicX-13" value="init.yaml&lt;div&gt;(to initiate parameters)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;" parent="keOr7OvfMAd7OnkER-1M-1" vertex="1">
+                    <mxGeometry x="180" y="290" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;" parent="keOr7OvfMAd7OnkER-1M-1" vertex="1">
+                    <mxGeometry x="20" y="377" width="780" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="comman types&lt;div&gt;(data types shared across modules)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;" parent="keOr7OvfMAd7OnkER-1M-1" vertex="1">
+                    <mxGeometry x="180" y="387" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="yaml loader&lt;div&gt;(read .yaml files)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;" vertex="1" parent="keOr7OvfMAd7OnkER-1M-1">
+                    <mxGeometry x="330" y="290" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="data types" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1" vertex="1" parent="keOr7OvfMAd7OnkER-1M-1">
+                    <mxGeometry x="21" y="377" width="160" height="80" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
