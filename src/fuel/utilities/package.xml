@@ -10,6 +10,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>yaml-cpp</depend>
   <depend>eigen3_cmake_module</depend>
+  <depend>Eigen3</depend>
   
   <export>
     <build_type>ament_cmake</build_type>

@@ -4,17 +4,17 @@ add_executable(controller_manager
   src/service_manager.cpp
 )
 
-target_link_libraries(controller_manager
-  # PRIVATE
-    controller_manager_implement
-)
-
 target_include_directories(controller_manager
 PUBLIC
   include
 PRIVATE
   ../implement/include
   ${EIGEN3_INCLUDE_DIR}
+)
+
+target_link_libraries(controller_manager
+  # PRIVATE
+    controller_manager_implement
 )
 
 ament_target_dependencies(controller_manager
@@ -28,9 +28,5 @@ ament_target_dependencies(controller_manager
   utilities
 )
 
-install(TARGETS
-  controller_manager
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
+install(TARGETS controller_manager
+  DESTINATION lib/${PROJECT_NAME})

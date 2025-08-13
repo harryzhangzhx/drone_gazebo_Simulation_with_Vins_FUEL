@@ -65,6 +65,9 @@ set(msg_files
   "msg/StatusData.msg"
   "msg/TRPYCommand.msg"
   "msg/NextPosAndYaw.msg"
+  "msg/ThrustAndOmega.msg"
+  "srv/GetMapData.srv"
+  "srv/GetMapParam.srv"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

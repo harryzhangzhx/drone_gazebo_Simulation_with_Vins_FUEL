@@ -8,6 +8,7 @@
 #include <nav_msgs/msg/path.hpp>
 #include <std_msgs/msg/empty.hpp>
 #include <nav_msgs/msg/odometry.hpp>
+#include "quadrotor_msgs/msg/next_pos_and_yaw.hpp"
 #include <visualization_msgs/msg/marker.hpp>
 
 #include <bspline/msg/bspline.hpp>
@@ -74,6 +75,7 @@ namespace fast_planner
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr replan_pub_;
     rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr new_pub_;
     rclcpp::Publisher<bspline::msg::Bspline>::SharedPtr bspline_pub_;
+    rclcpp::Publisher<quadrotor_msgs::msg::NextPosAndYaw>::SharedPtr next_pos_and_yaw_pub_;
 
     /* helper functions */
     int callExplorationPlanner();

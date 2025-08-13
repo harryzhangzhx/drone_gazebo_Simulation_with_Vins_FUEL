@@ -1,0 +1,8 @@
+# GetMapData.srv
+# Request (empty - client just wants the data)
+---
+# Response
+float64[] occupancy_buffer
+int8[] occupancy_buffer_inflate  
+float64[] distance_buffer_neg
+float64[] distance_buffer

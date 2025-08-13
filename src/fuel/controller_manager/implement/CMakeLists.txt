@@ -2,13 +2,10 @@ add_library(controller_manager_implement SHARED
   src/controller_manager.cpp
 )
 
-message(WARNING ${Eigen3_INCLUDE_DIRS})
-message(WARNING hello)
-
 target_include_directories(controller_manager_implement
-  PRIVATE
-    include
-    ../interface/include
+PRIVATE
+  include
+  ../interface/include
 )
 
 ament_target_dependencies(controller_manager_implement
@@ -19,6 +16,7 @@ ament_target_dependencies(controller_manager_implement
   path_planner
   utilities
   controller
+  governor
 )
 
 target_link_libraries(controller_manager_implement

@@ -1,15 +1,22 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, ExecuteProcess, TimerAction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 import os
 from ament_index_python.packages import get_package_share_directory
+
 
 def launch_setup(context, *args, **kwargs):
     def lc(name): return LaunchConfiguration(name).perform(context)
 
     exploration_manager_share = get_package_share_directory('exploration_manager')
     plan_manage_share = get_package_share_directory('plan_manage')
+
+    # Check the path
+    this_dir = os.path.dirname(os.path.realpath(__file__))
+    launch_drone_circle_script = os.path.normpath(os.path.join(this_dir, "../../../drone_circle_pkg/launch_drone_circle.sh"))
+    rviz_config = os.path.normpath(os.path.join(this_dir, '../../exploration_manager/config/ros2_fuel.rviz'))
+    tsp_dir = os.path.normpath(os.path.join(this_dir, "../../utils/lkh_tsp_solver/resource"))
 
     params = {
         'map_ros/cx': float(lc('cx')),
@@ -65,7 +72,7 @@ def launch_setup(context, *args, **kwargs):
         'exploration/yd': 3.1415926 * 60 / 180.0,
         'exploration/ydd': 3.1415926 * 90 / 180.0,
         'exploration/w_dir': 1.5,
-        'exploration/tsp_dir': "/home/harry/drone_circle/src/fuel/src/utils/lkh_tsp_solver/resource",
+        'exploration/tsp_dir': tsp_dir,
         'exploration/relax_time': 1.0,
         'cmu_exploration': False,
         'frontier/cluster_min': 100,
@@ -165,6 +172,37 @@ def launch_setup(context, *args, **kwargs):
     }
 
     return [
+        # run the launch_drone_circle.sh script
+        ExecuteProcess(
+            cmd=[
+                'gnome-terminal', '--', 'bash', '-c',
+                f'"{launch_drone_circle_script}"; exec bash'
+            ],
+            output='both'
+        ),
+
+        # drone_circle_node (was terminal 4)
+        TimerAction(
+            period=30.0,
+            actions=[
+                Node(
+                    package='drone_circle_pkg',
+                    executable='drone_circle_node',
+                    name='drone_circle_node',
+                    output='both',
+                    arguments=['--ros-args', '--log-level', 'info']
+                )
+            ]
+        ),
+
+        Node(
+            package='controller_manager',
+            executable='controller_manager',
+            name='controller_manager_node',
+            output='both',
+            arguments=['--ros-args', '--log-level', 'info']
+        ),
+
         Node(
             package='exploration_manager',
             executable='exploration_node',
@@ -178,6 +216,7 @@ def launch_setup(context, *args, **kwargs):
             ],
             parameters=[params]
         ),
+
         Node(
             package='plan_manage',
             executable='traj_server',
@@ -199,6 +238,7 @@ def launch_setup(context, *args, **kwargs):
                 'perception_utils/vis_dist': 1.0,
             }]
         ),
+
         Node(
             package='waypoint_generator',
             executable='waypoint_generator',
@@ -211,13 +251,15 @@ def launch_setup(context, *args, **kwargs):
             ],
             parameters=[{'waypoint_type': 'point'}]
         ),
+
         Node(
             package='rviz2',
             executable='rviz2',
             name='rvizvisualisation',
             output='log',
-            arguments=['-d', '/home/harry/drone_circle/src/fuel/src/exploration_manager/config/ros2_fuel.rviz']
+            arguments=['-d', rviz_config, '--ros-args', '--log-level', 'info'],
         ),
+
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',

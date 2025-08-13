@@ -3,6 +3,7 @@
 
 #include <bspline_opt/bspline_optimizer.h>
 #include <bspline/non_uniform_bspline.h>
+#include "quadrotor_msgs/msg/next_pos_and_yaw.hpp"
 
 #include <path_searching/astar2.h>
 #include <path_searching/kinodynamic_astar.h>
@@ -55,6 +56,7 @@ namespace fast_planner
     EDTEnvironment::Ptr edt_environment_;
     unique_ptr<Astar> path_finder_;
     unique_ptr<TopologyPRM> topo_prm_;
+    quadrotor_msgs::msg::NextPosAndYaw next_pos_and_yaw_; // TODO make it private and use getter/setter for access
 
   private:
     /* main planning algorithms & modules */

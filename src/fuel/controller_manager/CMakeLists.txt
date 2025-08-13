@@ -3,7 +3,7 @@ project(controller_manager)
 
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall")
+add_compile_options(-Ofast -Wall -Wextra -Wpedantic)
 
 find_package(ament_cmake REQUIRED)
 find_package(Eigen3 REQUIRED)

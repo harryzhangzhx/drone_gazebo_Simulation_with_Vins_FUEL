@@ -9,6 +9,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall")
 find_package(ament_cmake REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(utilities REQUIRED)
+find_package(rclcpp REQUIRED)
 
 add_subdirectory(implement)
 add_subdirectory(interface)

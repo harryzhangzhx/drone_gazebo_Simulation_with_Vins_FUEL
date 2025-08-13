@@ -1,17 +1,17 @@
 #pragma once
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <memory>
 #include "utilities/common_types.h"
+#include "utilities/voxel_map.h"
 
 class PathFG;
 
 class Governor
 {
 public:
-  Governor(const utilities::AllParams &params);
-  double getGovernorRef(const std::vector<Eigen::VectorXd> &path, const Eigen::VectorXd &x, const double &prior_s);
+  Governor(const utilities::AllParams &params, const std::shared_ptr<VoxelMap> voxel_map_ptr);
+  std::pair<double, Eigen::VectorXd> getGovernorRef(const std::vector<Eigen::Vector3d> &path, const Eigen::VectorXd &x, double &prior_s);
 
 private:
   std::shared_ptr<PathFG> pathFG_ptr_;
-  const utilities::AllParams &params_;
 };

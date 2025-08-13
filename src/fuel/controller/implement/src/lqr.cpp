@@ -1,8 +1,10 @@
 #include "lqr.h"
-#include <iostream>
 
-void lqr ()
+LQR::LQR(const utilities::AllParams &params) : K_(params.MPC_params.K_matrix)
 {
-    std::cout << "I am lqr\n" << std::endl;
 }
 
+Eigen::VectorXd LQR::getLQRCommand(const Eigen::VectorXd &current_state, const Eigen::VectorXd &ref_state)
+{
+  return -K_ * (current_state - ref_state);
+}

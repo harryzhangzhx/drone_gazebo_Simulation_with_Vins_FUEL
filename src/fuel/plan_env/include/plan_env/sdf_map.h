@@ -79,8 +79,6 @@ namespace fast_planner
     template <typename F_get_val, typename F_set_val>
     void fillESDF(F_get_val f_get_val, F_set_val f_set_val, int start, int end, int dim);
 
-    std::unique_ptr<MapParam> mp_;
-    std::unique_ptr<MapData> md_;
     std::unique_ptr<MapROS> mr_;
     std::unique_ptr<RayCaster> caster_;
 
@@ -88,6 +86,9 @@ namespace fast_planner
 
   public:
     typedef std::shared_ptr<SDFMap> Ptr;
+
+    std::unique_ptr<MapParam> mp_; // TODO make this private and use getter/setter for access
+    std::unique_ptr<MapData> md_;  // TODO the same as above
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   };
 
