@@ -1,85 +1,93 @@
 #include "pathfg.h"
 #include <iostream>
 
-PathFG::PathFG(const utilities::AllParams &params) : kappa_PathFG_(params.governor_params.kappa_PathFG),
-                                                     max_iter_PathFG_(params.governor_params.max_iter_PathFG),
-                                                     lower_dsm_bound_PathFG_(params.governor_params.lower_dsm_bound_PathFG),
-                                                     upper_dsm_bound_PathFG_(params.governor_params.upper_dsm_bound_PathFG)
+PathFG::PathFG(const utilities::AllParams &params, const std::shared_ptr<VoxelMap> voxel_map_ptr)
+    : interpolation_factor_(params.governor_params.interpolation_factor),
+      max_iter_PathFG_(params.governor_params.max_iter_PathFG),
+      lower_dsm_bound_PathFG_(params.governor_params.lower_dsm_bound_PathFG),
+      upper_dsm_bound_PathFG_(params.governor_params.upper_dsm_bound_PathFG),
+      voxel_map_ptr_(voxel_map_ptr)
 {
-    dsm_ptr_ = std::make_shared<DynamicSafetyMargin>(params);
+  dsm_ptr_ = std::make_shared<DynamicSafetyMargin>(params, voxel_map_ptr);
 }
 
-double PathFG::computePathFGRef(const std::vector<Eigen::VectorXd> &path, const Eigen::VectorXd &x, const double &prior_s)
+std::pair<double, Eigen::VectorXd> PathFG::computePathFGRef(const std::vector<Eigen::Vector3d> &path, const Eigen::VectorXd &current_state, double &prior_s)
 {
-    // if the auxiliary reference is already the end of the path
-    double path_size = static_cast<double>(path.size());
-    if (prior_s == path_size)
+  // TODO reset s if the path is new
+  std::cout << "prior_s:" << prior_s << std::endl;
+  double path_size = static_cast<double>(path.size());
+  std::cout << "path_size:" << path_size << std::endl;
+
+  VectorXd ref_state = getRefState(path, path_size - 1); // the equilibrium state (position + yaw )at the reference
+
+  // if the auxiliary reference is already the end of the path
+  if (path_size - 1 - prior_s < 1e-2)
+  {
+    return {prior_s, ref_state};
+  }
+
+  // if the end of the path is already feasible
+  double DSM_val = dsm_ptr_->getDSM(current_state, ref_state);
+  int dsm_feasibility = checkDSMFeasibility(DSM_val);
+
+  if (dsm_feasibility == 0)
+  {
+    return {path_size - 1, ref_state};
+  }
+
+  // interpolate the path to find a feasible auxiliary reference
+  double lower_s = prior_s;
+  double upper_s = path_size - 1;
+  double s = upper_s;
+  int iter = 0;
+
+  // bisection method
+  while (dsm_feasibility != 0 && iter < max_iter_PathFG_)
+  {
+    if (dsm_feasibility == -1)
     {
-        return prior_s;
+      upper_s = s;
     }
-
-    // if the end of the path is already feasible
-    VectorXd v = getVPosition(path, path_size);
-    double DSM_val = dsm_ptr_->getDSM(x, v);
-    int dsm_feasibility = checkDSMFeasibility(DSM_val);
-    if (dsm_feasibility == 1)
+    else
     {
-        return path_size;
+      lower_s = s;
     }
+    s = lower_s + interpolation_factor_ * (upper_s - lower_s);
+    ref_state = getRefState(path, s);
+    DSM_val = dsm_ptr_->getDSM(current_state, ref_state);
+    // std::cout << "DSM_val in the loop:" << DSM_val << std::endl;
+    dsm_feasibility = checkDSMFeasibility(DSM_val);
 
-    // interpolate the path to find a feasible auxiliary reference
-    int lower_s = prior_s;
-    int upper_s = path_size;
-    double s = upper_s;
-    int iter = 0;
+    iter++;
+  }
 
-    // bisection method
-    while (dsm_feasibility != 0 && iter < max_iter_PathFG_)
-    {
-        if (dsm_feasibility == -1)
-        {
-            upper_s = s;
-        }
-        else
-        {
-            lower_s = s;
-        }
+  std::cout << "pathFG completed" << std::endl;
 
-        s = lower_s + kappa_PathFG_ * (upper_s - lower_s);
-        v = getVPosition(path, s);
-
-        DSM_val = dsm_ptr_->getDSM(x, v);
-        dsm_feasibility = checkDSMFeasibility(DSM_val);
-
-        iter++;
-    }
-
-    return s;
+  return {s, ref_state};
 }
 
 int PathFG::checkDSMFeasibility(double DSM_val) const
 {
-    if (DSM_val < lower_dsm_bound_PathFG_)
-        return -1;
-    else if (DSM_val > upper_dsm_bound_PathFG_)
-        return 1;
-    else
-        return 0;
+  if (DSM_val < lower_dsm_bound_PathFG_)
+    return -1;
+  else if (DSM_val > upper_dsm_bound_PathFG_)
+    return 1;
+  else
+    return 0;
 }
 
-Eigen::Vector4d PathFG::getVPosition(const std::vector<Eigen::VectorXd> &path, double s)
+Eigen::VectorXd PathFG::getRefState(const std::vector<Eigen::Vector3d> &path, const double s)
 {
+  const double s_clamped = std::max(0.0, std::min(s, static_cast<double>(path.size() - 1)));
+  size_t lower_idx = static_cast<size_t>(std::floor(s_clamped));
+  size_t upper_idx = static_cast<size_t>(std::ceil(s_clamped));
 
-    size_t lower_idx = static_cast<size_t>(std::floor(s));
-    size_t upper_idx = static_cast<size_t>(std::ceil(s));
+  // TODO double check path index, make sure it's using the currect point (matlab vector starts from 1)
+  Eigen::Vector3d vector_delta = path[upper_idx] - path[lower_idx];
+  Eigen::Vector3d interpolated = path[lower_idx] + (s - lower_idx) * vector_delta;
 
-    Eigen::Vector3d vector_delta = path[upper_idx] - path[lower_idx];
-    Eigen::Vector3d interpolated = path[lower_idx] + (s - lower_idx) * vector_delta;
+  Eigen::VectorXd ref_state = Eigen::VectorXd::Zero(9);
+  ref_state.head(3) = interpolated; // position
 
-    // Create a 4D vector and set yaw to 0.0
-    Eigen::Vector4d v;
-    v.head<3>() = interpolated;
-    v(3) = 0.0;
-
-    return v;
+  return ref_state;
 }

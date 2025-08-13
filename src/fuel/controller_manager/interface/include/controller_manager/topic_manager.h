@@ -9,6 +9,7 @@
 #include "geometry_msgs/msg/point.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "quadrotor_msgs/msg/next_pos_and_yaw.hpp"
+#include "quadrotor_msgs/msg/thrust_and_omega.hpp"
 #include "controller_manager_types.h"
 
 namespace ctrl_manager
@@ -22,6 +23,7 @@ namespace ctrl_manager
     void setNewTargetFlag(const bool &new_target_flag);
     Eigen::Vector4d getNewTarget() const;
     ctrl_manager::OdomWorld getOdom() const;
+    void publishThrustAndOmega(const Eigen::Vector4d &ctrl_cmd) const;
 
   private:
     void nextPosAndYawCallback(const quadrotor_msgs::msg::NextPosAndYaw::SharedPtr msg);
@@ -30,6 +32,7 @@ namespace ctrl_manager
     std::shared_ptr<rclcpp::Node> node_;
     rclcpp::Subscription<quadrotor_msgs::msg::NextPosAndYaw>::SharedPtr next_pos_and_yaw_sub_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+    rclcpp::Publisher<quadrotor_msgs::msg::ThrustAndOmega>::SharedPtr thrust_omega_pub_;
 
     std::atomic<bool> new_target_flag_{false};
     mutable std::mutex task_mutex_;

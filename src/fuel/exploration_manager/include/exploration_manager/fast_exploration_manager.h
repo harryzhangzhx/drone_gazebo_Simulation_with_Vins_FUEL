@@ -8,6 +8,10 @@
 #include <vector>
 #include <geometry_msgs/msg/point.hpp>
 #include <geometry_msgs/msg/point_stamped.hpp>
+#include "quadrotor_msgs/msg/next_pos_and_yaw.hpp"
+#include "quadrotor_msgs/srv/get_map_data.hpp"
+#include "quadrotor_msgs/srv/get_map_param.hpp"
+
 using Eigen::Vector3d;
 using std::shared_ptr;
 using std::unique_ptr;
@@ -53,6 +57,8 @@ namespace fast_planner
     // ros::Publisher cmu_pose_pub_;
     rclcpp::Publisher<geometry_msgs::msg::Point>::SharedPtr endpose_pub_;
     rclcpp::Publisher<geometry_msgs::msg::PointStamped>::SharedPtr cmu_pose_pub_;
+    rclcpp::Service<quadrotor_msgs::srv::GetMapData>::SharedPtr map_data_server_;
+    rclcpp::Service<quadrotor_msgs::srv::GetMapParam>::SharedPtr map_param_server_;
 
     geometry_msgs::msg::Point end_pose;
     geometry_msgs::msg::PointStamped cmu_pose;
@@ -72,6 +78,9 @@ namespace fast_planner
                          vector<Vector3d> &refined_pts, vector<double> &refined_yaws);
 
     void shortenPath(vector<Vector3d> &path);
+
+    void mapDataCallback(const shared_ptr<quadrotor_msgs::srv::GetMapData::Request> request, shared_ptr<quadrotor_msgs::srv::GetMapData::Response> response);
+    void mapParamCallback(const shared_ptr<quadrotor_msgs::srv::GetMapParam::Request> request, shared_ptr<quadrotor_msgs::srv::GetMapParam::Response> response);
 
   public:
     typedef shared_ptr<FastExplorationManager> Ptr;

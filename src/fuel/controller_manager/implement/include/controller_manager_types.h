@@ -4,7 +4,7 @@
 
 namespace ctrl_manager
 {
-    enum State
+    enum Status
     {
         IDLE,
         NEW_TARGET,
@@ -15,9 +15,10 @@ namespace ctrl_manager
 
     struct OdomWorld
     {
-        Eigen::Vector3d odom_pos_;
-        Eigen::Vector3d odom_vel_;
-        Eigen::Quaterniond odom_orient_;
-        double odom_yaw_;
+        Eigen::Vector3d odom_pos;
+        Eigen::Vector3d odom_vel;
+        Eigen::Quaterniond odom_orient;
+        double odom_yaw;
     };
+
 }

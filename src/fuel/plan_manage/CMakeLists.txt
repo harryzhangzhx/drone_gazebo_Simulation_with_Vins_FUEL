@@ -3,7 +3,7 @@ project(plan_manage)
 
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall")
+add_compile_options(-Ofast -Wall -Wextra -Wpedantic)
 
 find_package(quadrotor_msgs REQUIRED)
 find_package(poly_traj REQUIRED)
@@ -22,21 +22,11 @@ find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
 find_package(NLopt REQUIRED)
 
-
-add_library(plan_manage 
+add_library(${PROJECT_NAME} SHARED
   src/planner_manager.cpp
 )
 
-
-target_include_directories(plan_manage
-PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-PRIVATE
-    ${EIGEN3_INCLUDE_DIRS}
-)
-
-ament_target_dependencies(plan_manage
+ament_target_dependencies(${PROJECT_NAME}
   poly_traj
   plan_env
   path_searching
@@ -46,24 +36,19 @@ ament_target_dependencies(plan_manage
   active_perception
   rclcpp
   std_msgs
+  quadrotor_msgs
+  Eigen3
+)
+
+target_include_directories(${PROJECT_NAME}
+PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
 
 add_executable(traj_server 
   src/traj_server.cpp
 )
-
-
-target_include_directories(traj_server
-PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-PRIVATE
-    ${EIGEN3_INCLUDE_DIRS}
-)
-
-target_link_libraries(traj_server
-  -ldw
-)  
 
 ament_target_dependencies(traj_server
   poly_traj
@@ -76,14 +61,22 @@ ament_target_dependencies(traj_server
   rclcpp
   std_msgs
   quadrotor_msgs
+  Eigen3
 )
 
+target_include_directories(traj_server
+PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
 
-install(TARGETS plan_manage
-    EXPORT export_plan_manage
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
+target_link_libraries(traj_server
+  -ldw
+)
+
+install(TARGETS ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
+  DESTINATION lib
 )
 
 install(TARGETS traj_server
@@ -95,8 +88,7 @@ install(
   DESTINATION include
 )
 
-ament_export_targets(export_plan_manage HAS_LIBRARY_TARGET)
-# TODO check which packages are exposed to downstream packages
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(
   poly_traj
   plan_env
@@ -107,7 +99,6 @@ ament_export_dependencies(
   active_perception
   rclcpp
   std_msgs
+  Eigen3
 )
-# ament_export_include_directories(include)
-
 ament_package()

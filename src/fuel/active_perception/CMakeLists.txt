@@ -3,7 +3,7 @@ project(active_perception)
 
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall")
+add_compile_options(-Ofast -Wall -Wextra -Wpedantic)
 
 find_package(plan_env REQUIRED)
 find_package(bspline REQUIRED)
@@ -18,7 +18,6 @@ find_package(cv_bridge REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
 
-
 add_library(active_perception
   src/traj_visibility.cpp 
   src/heading_planner.cpp
@@ -31,13 +30,6 @@ target_include_directories(active_perception
 PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
-PRIVATE
-  ${EIGEN3_INCLUDE_DIRS}
-  ${PCL_INCLUDE_DIRS}
-)
-
-target_link_libraries(active_perception
-  ${PCL_LIBRARIES}
 )
 
 ament_target_dependencies(active_perception
@@ -49,6 +41,8 @@ ament_target_dependencies(active_perception
   sensor_msgs
   visualization_msgs
   cv_bridge
+  Eigen3
+  PCL
 )
 
 install(
@@ -58,15 +52,10 @@ install(
 
 install(TARGETS active_perception
   EXPORT export_active_perception
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
+  DESTINATION lib
 )
 
-
-# ament_export_include_directories(include)
 ament_export_targets(export_active_perception HAS_LIBRARY_TARGET)
-# TODO check which packages are exposed to downstream packages
 ament_export_dependencies(
   rclcpp
   std_msgs
@@ -76,6 +65,6 @@ ament_export_dependencies(
   plan_env
   bspline
   path_searching
+  Eigen3
 )
-
 ament_package()

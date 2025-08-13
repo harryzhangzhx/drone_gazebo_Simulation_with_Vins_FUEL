@@ -1,0 +1,42 @@
+# Request (empty - just requesting the MapParam data)
+
+---
+# Response
+
+# Map properties
+geometry_msgs/Vector3 map_origin
+geometry_msgs/Vector3 map_size
+geometry_msgs/Vector3 map_min_boundary
+geometry_msgs/Vector3 map_max_boundary
+int32[3] map_voxel_num
+float64 resolution
+float64 resolution_inv
+float64 obstacles_inflation
+float64 virtual_ceil_height
+float64 ground_height
+int32[3] box_min
+int32[3] box_max
+geometry_msgs/Vector3 box_mind
+geometry_msgs/Vector3 box_maxd
+float64 default_dist
+bool optimistic
+bool signed_dist
+
+# Map fusion
+float64 p_hit
+float64 p_miss
+float64 p_min
+float64 p_max
+float64 p_occ
+
+# Logit
+float64 prob_hit_log
+float64 prob_miss_log
+float64 clamp_min_log
+float64 clamp_max_log
+float64 min_occupancy_log
+
+float64 max_ray_length
+float64 local_bound_inflate
+int32 local_map_margin
+float64 unknown_flag

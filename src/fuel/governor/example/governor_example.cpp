@@ -3,6 +3,6 @@
 
 int main()
 {
-    std::cout << "governor example is running" << std::endl;
+    std::cout << "test: governor example is running" << std::endl;
     return 0;
 }

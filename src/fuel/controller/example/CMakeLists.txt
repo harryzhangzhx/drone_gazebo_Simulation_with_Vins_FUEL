@@ -1,13 +1,26 @@
-add_executable(controller_example controller_example.cpp)
+# add_executable(mpc_example
+#   mpc_example.cpp
+# )
 
-target_include_directories(controller_example
-  PRIVATE
-    ../interface/include
-)
+# target_link_libraries(mpc_example
+#   controller
+# )
 
-target_link_libraries(controller_example controller)
+# add_executable(lqr_example
+#   lqr_example.cpp
+# )
 
-install(TARGETS 
-    controller_example
-    DESTINATION bin
-)
+# target_link_libraries(lqr_example
+#   controller
+# )
+
+# # target_include_directories(mpc_example
+# # PRIVATE
+# #   ../interface/include
+# # )
+
+# install(TARGETS 
+#   mpc_example
+#   lqr_example
+#   DESTINATION bin
+# )

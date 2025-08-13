@@ -4,6 +4,7 @@
 #include <px4_msgs/msg/trajectory_setpoint.hpp>
 #include <px4_msgs/msg/vehicle_command.hpp>
 #include <px4_msgs/msg/vehicle_control_mode.hpp>
+#include "quadrotor_msgs/msg/next_pos_and_yaw.hpp"
 #include <cmath>
 
 #include "stdint.h"
@@ -20,9 +21,19 @@ class DroneCircleNode : public rclcpp::Node
 public:
   DroneCircleNode() : Node("drone_circle_node")
   {
+    RCLCPP_INFO(this->get_logger(), "Starting DroneCircleNode...");
+
+    // msg_.position = {0.0, 0.0, -1.0}; // Hover at (0, 0, -1)
+    // msg_.yaw = 0.0f;                  // Keep yaw fixed
+
     offboard_control_mode_publisher_ = this->create_publisher<OffboardControlMode>("/fmu/in/offboard_control_mode", 10);
     trajectory_setpoint_publisher_ = this->create_publisher<TrajectorySetpoint>("/fmu/in/trajectory_setpoint", 10);
     vehicle_command_publisher_ = this->create_publisher<VehicleCommand>("/fmu/in/vehicle_command", 10);
+
+    next_pos_and_yaw_sub_ = this->create_subscription<quadrotor_msgs::msg::NextPosAndYaw>(
+        "/planning/next_pos_and_yaw",
+        rclcpp::QoS(10),
+        std::bind(&DroneCircleNode::nextPosAndYawCallback, this, std::placeholders::_1));
 
     offboard_setpoint_counter_ = 0;
 
@@ -49,6 +60,11 @@ public:
   void disarm();
 
 private:
+  void nextPosAndYawCallback(const quadrotor_msgs::msg::NextPosAndYaw::SharedPtr msg);
+
+private:
+  rclcpp::Subscription<quadrotor_msgs::msg::NextPosAndYaw>::SharedPtr next_pos_and_yaw_sub_;
+
   rclcpp::TimerBase::SharedPtr timer_;
 
   rclcpp::Publisher<OffboardControlMode>::SharedPtr offboard_control_mode_publisher_;
@@ -64,6 +80,8 @@ private:
   void publish_offboard_control_mode();
   void publish_trajectory_setpoint();
   void publish_vehicle_command(uint16_t command, float param1 = 0.0, float param2 = 0.0);
+
+  TrajectorySetpoint msg_{};
 };
 
 void DroneCircleNode::arm()
@@ -95,36 +113,57 @@ void DroneCircleNode::publish_offboard_control_mode()
 // // For circling motion
 // void DroneCircleNode::publish_trajectory_setpoint()
 // {
-// 	TrajectorySetpoint msg{};
-// 	msg.position = {0.0, 0.0, -5.0};
+//   TrajectorySetpoint msg{};
+//   msg.position = {0.0, 0.0, -1.0};
 
-//   msg.position = {radius_*std::cos(yaw_angle_), radius_*std::sin(yaw_angle_), -5.0};
-//   //msg.position.x = radius_*std::cos(yaw_angle_);
-//   //msg.position.y = radius_*std::sin(yaw_angle_);
+//   msg.position = {radius_ * std::cos(yaw_angle_), radius_ * std::sin(yaw_angle_), -1.0};
+//   // msg.position.x = radius_*std::cos(yaw_angle_);
+//   // msg.position.y = radius_*std::sin(yaw_angle_);
 
-// 	msg.yaw = yaw_angle_; // [-PI:PI]
-// 	msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-// 	trajectory_setpoint_publisher_->publish(msg);
-//   yaw_angle_ += 0.1f; //adjust the yaw angle to fly in a circle
+//   msg.yaw = yaw_angle_; // [-PI:PI]
+//   msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
+//   trajectory_setpoint_publisher_->publish(msg);
+//   yaw_angle_ += 0.1f; // adjust the yaw angle to fly in a circle
 
-//   if (yaw_angle_ > M_PI) {
-//       yaw_angle_ -= 2.0f*M_PI;
+//   if (yaw_angle_ > M_PI)
+//   {
+//     yaw_angle_ -= 2.0f * M_PI;
 //   }
 // }
 
-// For hovering motion
+// // For hovering motion
+// void DroneCircleNode::publish_trajectory_setpoint()
+// {
+//   TrajectorySetpoint msg{};
+//   msg.position = {0.0, 0.0, -1.0}; // Hover at (0, 0, -1)
+//   msg.yaw = 0.0f;                  // Keep yaw fixed
+//   msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
+//   trajectory_setpoint_publisher_->publish(msg);
+// }
+
+// Receive command from exploration manager
 void DroneCircleNode::publish_trajectory_setpoint()
 {
-  TrajectorySetpoint msg{};
-  msg.position = {0.0, 0.0, -1.0}; // Hover at (0, 0, -1)
-  msg.yaw = 0.0f;                  // Keep yaw fixed
-  msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-  trajectory_setpoint_publisher_->publish(msg);
+  // RCLCPP_INFO(this->get_logger(), "publish next_pos_and_yaw to PX4");
+  // RCLCPP_INFO(this->get_logger(), "  Position and Yaw: (%.2f, %.2f, %.2f, %.2f)",
+  //             msg_.position[0], msg_.position[1], msg_.position[2], msg_.yaw);
+  msg_.timestamp = this->get_clock()->now().nanoseconds() / 1000;
+  trajectory_setpoint_publisher_->publish(msg_);
+}
+
+void DroneCircleNode::nextPosAndYawCallback(const quadrotor_msgs::msg::NextPosAndYaw::SharedPtr msg)
+{
+  RCLCPP_INFO(this->get_logger(), "Drone_circle_node received next_pos_and_yaw: (%.2f, %.2f, %.2f, %.2f)",
+              msg->position.x, msg->position.y, msg->position.z, msg->yaw);
+
+  msg_.position[0] = msg->position.x;
+  msg_.position[1] = msg->position.y;
+  msg_.position[2] = -msg->position.z; // NOTE PX4 uses a different Z axis convention
+  msg_.yaw = msg->yaw;
 }
 
 void DroneCircleNode::publish_vehicle_command(uint16_t command, float param1, float param2)
 {
-
   VehicleCommand msg{};
   msg.param1 = param1;
   msg.param2 = param2;

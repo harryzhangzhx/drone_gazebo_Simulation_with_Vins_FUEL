@@ -7,11 +7,14 @@ ctrl_input_dim: 4
 equilib_dim: 4
 
 # constraints
-thrust_min:  0.0
-thrust_max:  0.59
-omega_x_max: 1.57 # angular rate
-omega_y_max: 1.57
-omega_z_max: 1.57
+ctrl_input_min: [0.0, -1.57, -1.57, -1.57] # [thrust, omega_x,..., omega_z] in Newtons and radians
+ctrl_input_max: [0.59, 1.57,  1.57,  1.57]
+state_max:
+[
+  100, 100, 100, # x, y, z in meters
+  5, 5, 5,       # x_dot, y_dot, z_dot in m/s
+  0.8, 0.8, 0.8  # roll, pitch, yaw in raidans/s
+]
 obstacles:
   - [1.0, 2.0, 3.0]
   - [4.0, 5.0, 6.0]
@@ -24,12 +27,11 @@ N: 10
 Q_MPC_diagonal: [10, 10, 10, 0.5, 0.5, 0.5, 2.5, 2.5, 2.5]
 R_MPC_diagonal: [0.1, 0.1, 0.1, 0.1]
 
-
 # Governor paramters
-kappa_s: 2.0
-kappa_o: 5.0
-kappa_PathFG: 0.5
-max_iter_PathFG: 30
+scale_factor_thrust:    2.0
+scale_factor_obstacle:  5.0
+interpolation_factor:   0.5
+max_iter_PathFG:        10
 lower_dsm_bound_PathFG: 0
 upper_dsm_bound_PathFG: 0.5
 

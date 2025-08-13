@@ -20,6 +20,7 @@
 #include <visualization_msgs/msg/marker.hpp>
 #include <geometry_msgs/msg/point_stamped.hpp>
 #include <geometry_msgs/msg/point.hpp>
+
 using namespace Eigen;
 
 namespace fast_planner
@@ -96,6 +97,13 @@ namespace fast_planner
 
     // endpose_pub_ = nh.advertise<geometry_msgs::Point>("/chen/plan_pose", 10);
     endpose_pub_ = node->create_publisher<geometry_msgs::msg::Point>("/chen/plan_pose", 10);
+
+    map_data_server_ = node->create_service<quadrotor_msgs::srv::GetMapData>("/get_map_Data",
+                                                                             std::bind(&FastExplorationManager::mapDataCallback, this,
+                                                                                       std::placeholders::_1, std::placeholders::_2));
+    map_param_server_ = node->create_service<quadrotor_msgs::srv::GetMapParam>("/get_map_param",
+                                                                               std::bind(&FastExplorationManager::mapParamCallback, this,
+                                                                                         std::placeholders::_1, std::placeholders::_2));
 
     // cmu_pose_pub_ = nh.advertise<geometry_msgs::PointStamped>("/way_point", 10);
     cmu_pose_pub_ = node->create_publisher<geometry_msgs::msg::PointStamped>("/way_point", 10);
@@ -275,7 +283,11 @@ namespace fast_planner
     else
       RCLCPP_ERROR(rclcpp::get_logger("FastExplorationManager"), "Empty destination.");
 
-    std::cout << "Next view: " << next_pos.transpose() << ", " << "next_yaw:" << next_yaw << std::endl;
+    planner_manager_->next_pos_and_yaw_.position.x = next_pos(0);
+    planner_manager_->next_pos_and_yaw_.position.y = next_pos(1);
+    planner_manager_->next_pos_and_yaw_.position.z = next_pos(2);
+    planner_manager_->next_pos_and_yaw_.yaw = next_yaw;
+
     // Plan trajectory (position and yaw) to the next viewpoint
     t1 = rclcpp::Clock(RCL_ROS_TIME).now();
 
@@ -590,4 +602,83 @@ namespace fast_planner
     // ROS_WARN("create: %lf, search: %lf, parse: %lf", create_time, search_time, parse_time);
   }
 
+  void FastExplorationManager::mapDataCallback(const std::shared_ptr<quadrotor_msgs::srv::GetMapData::Request> request, std::shared_ptr<quadrotor_msgs::srv::GetMapData::Response> response)
+  {
+
+    response->occupancy_buffer = edt_environment_->sdf_map_->md_->occupancy_buffer_;
+    response->occupancy_buffer_inflate.assign(edt_environment_->sdf_map_->md_->occupancy_buffer_inflate_.begin(), edt_environment_->sdf_map_->md_->occupancy_buffer_inflate_.end());
+    response->distance_buffer_neg = edt_environment_->sdf_map_->md_->distance_buffer_neg_;
+    response->distance_buffer = edt_environment_->sdf_map_->md_->distance_buffer_;
+  }
+
+  void FastExplorationManager::mapParamCallback(
+      const std::shared_ptr<quadrotor_msgs::srv::GetMapParam::Request> request,
+      std::shared_ptr<quadrotor_msgs::srv::GetMapParam::Response> response)
+  {
+
+    // Map properties
+    response->map_origin.x = edt_environment_->sdf_map_->mp_->map_origin_(0);
+    response->map_origin.y = edt_environment_->sdf_map_->mp_->map_origin_(1);
+    response->map_origin.z = edt_environment_->sdf_map_->mp_->map_origin_(2);
+
+    response->map_size.x = edt_environment_->sdf_map_->mp_->map_size_(0);
+    response->map_size.y = edt_environment_->sdf_map_->mp_->map_size_(1);
+    response->map_size.z = edt_environment_->sdf_map_->mp_->map_size_(2);
+
+    response->map_min_boundary.x = edt_environment_->sdf_map_->mp_->map_min_boundary_(0);
+    response->map_min_boundary.y = edt_environment_->sdf_map_->mp_->map_min_boundary_(1);
+    response->map_min_boundary.z = edt_environment_->sdf_map_->mp_->map_min_boundary_(2);
+
+    response->map_max_boundary.x = edt_environment_->sdf_map_->mp_->map_max_boundary_(0);
+    response->map_max_boundary.y = edt_environment_->sdf_map_->mp_->map_max_boundary_(1);
+    response->map_max_boundary.z = edt_environment_->sdf_map_->mp_->map_max_boundary_(2);
+
+    response->map_voxel_num[0] = edt_environment_->sdf_map_->mp_->map_voxel_num_(0);
+    response->map_voxel_num[1] = edt_environment_->sdf_map_->mp_->map_voxel_num_(1);
+    response->map_voxel_num[2] = edt_environment_->sdf_map_->mp_->map_voxel_num_(2);
+
+    response->resolution = edt_environment_->sdf_map_->mp_->resolution_;
+    response->resolution_inv = edt_environment_->sdf_map_->mp_->resolution_inv_;
+    response->obstacles_inflation = edt_environment_->sdf_map_->mp_->obstacles_inflation_;
+    response->virtual_ceil_height = edt_environment_->sdf_map_->mp_->virtual_ceil_height_;
+    response->ground_height = edt_environment_->sdf_map_->mp_->ground_height_;
+
+    response->box_min[0] = edt_environment_->sdf_map_->mp_->box_min_(0);
+    response->box_min[1] = edt_environment_->sdf_map_->mp_->box_min_(1);
+    response->box_min[2] = edt_environment_->sdf_map_->mp_->box_min_(2);
+
+    response->box_max[0] = edt_environment_->sdf_map_->mp_->box_max_(0);
+    response->box_max[1] = edt_environment_->sdf_map_->mp_->box_max_(1);
+    response->box_max[2] = edt_environment_->sdf_map_->mp_->box_max_(2);
+
+    response->box_mind.x = edt_environment_->sdf_map_->mp_->box_mind_(0);
+    response->box_mind.y = edt_environment_->sdf_map_->mp_->box_mind_(1);
+    response->box_mind.z = edt_environment_->sdf_map_->mp_->box_mind_(2);
+
+    response->box_maxd.x = edt_environment_->sdf_map_->mp_->box_maxd_(0);
+    response->box_maxd.y = edt_environment_->sdf_map_->mp_->box_maxd_(1);
+    response->box_maxd.z = edt_environment_->sdf_map_->mp_->box_maxd_(2);
+
+    response->default_dist = edt_environment_->sdf_map_->mp_->default_dist_;
+    response->optimistic = edt_environment_->sdf_map_->mp_->optimistic_;
+    response->signed_dist = edt_environment_->sdf_map_->mp_->signed_dist_;
+
+    // Map fusion
+    response->p_hit = edt_environment_->sdf_map_->mp_->p_hit_;
+    response->p_miss = edt_environment_->sdf_map_->mp_->p_miss_;
+    response->p_min = edt_environment_->sdf_map_->mp_->p_min_;
+    response->p_max = edt_environment_->sdf_map_->mp_->p_max_;
+    response->p_occ = edt_environment_->sdf_map_->mp_->p_occ_;
+
+    // Logit
+    response->prob_hit_log = edt_environment_->sdf_map_->mp_->prob_hit_log_;
+    response->prob_miss_log = edt_environment_->sdf_map_->mp_->prob_miss_log_;
+    response->clamp_min_log = edt_environment_->sdf_map_->mp_->clamp_min_log_;
+    response->clamp_max_log = edt_environment_->sdf_map_->mp_->clamp_max_log_;
+    response->min_occupancy_log = edt_environment_->sdf_map_->mp_->min_occupancy_log_;
+    response->max_ray_length = edt_environment_->sdf_map_->mp_->max_ray_length_;
+    response->local_bound_inflate = edt_environment_->sdf_map_->mp_->local_bound_inflate_;
+    response->local_map_margin = edt_environment_->sdf_map_->mp_->local_map_margin_;
+    response->unknown_flag = edt_environment_->sdf_map_->mp_->unknown_flag_;
+  }
 } // namespace fast_planner

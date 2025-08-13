@@ -66,6 +66,8 @@ namespace fast_planner
     new_pub_ = node->create_publisher<std_msgs::msg::Empty>("/planning/new", 10);
     // bspline_pub_ = nh.advertise<bspline::Bspline>("/planning/bspline", 10);
     bspline_pub_ = node->create_publisher<bspline::msg::Bspline>("/planning/bspline", 10);
+
+    next_pos_and_yaw_pub_ = node->create_publisher<quadrotor_msgs::msg::NextPosAndYaw>("/planning/next_pos_and_yaw", 10);
   }
 
   void FastExplorationFSM::FSMCallback()
@@ -139,6 +141,12 @@ namespace fast_planner
         fd_->start_yaw_(1) = info->yawdot_traj_.evaluateDeBoorT(t_r)[0];
         fd_->start_yaw_(2) = info->yawdotdot_traj_.evaluateDeBoorT(t_r)[0];
       }
+
+      RCLCPP_INFO(node->get_logger(), "exploration publishing next_pos_and_yaw: (%.2f, %.2f, %.2f, %.2f)", planner_manager_->next_pos_and_yaw_.position.x,
+                  planner_manager_->next_pos_and_yaw_.position.y, planner_manager_->next_pos_and_yaw_.position.z,
+                  planner_manager_->next_pos_and_yaw_.yaw);
+
+      next_pos_and_yaw_pub_->publish(planner_manager_->next_pos_and_yaw_);
 
       // Inform traj_server the replanning
       replan_pub_->publish(std_msgs::msg::Empty());
